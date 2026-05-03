@@ -90,7 +90,7 @@
     font-weight: 900; line-height: 1.05; color: white; margin-bottom: 22px;
   }
 
-  .hero-title .hl { color: var(--green) }
+  .hero-title .hl { color: var(--green-lt) }
 
   .hero-sub { font-size: 1.08rem; line-height: 1.78; color: rgba(255,255,255,0.82); font-weight: 300; max-width: 500px; margin-bottom: 40px; }
 
@@ -301,6 +301,30 @@
     .cta-btns { justify-content: center; }
     .fp { padding: 28px 20px; }
     .hero-title { font-size: 2.4rem; }
+    #hero {
+    margin-top: 50px; /* Reduz o espaçamento em relação à Navbar no mobile */
+    min-height: 480px; /* Reduz a altura mínima para o conteúdo subir */
+    align-items: flex-start; /* Alinha o conteúdo ao topo em vez do centro */
+    }
+
+    .hero-content {
+      padding-top: 90px; /* Controla exatamente a que distância do topo o badge ficará */
+    }
+
+    .hero-badge {
+      margin-bottom: 15px; /* Reduz o espaço entre o badge e o título principal */
+    }
+  }
+  /* Ajuste fino da imagem do drone no celular */
+  @media (max-width: 480px) {
+    .hero-img {
+      /* 70% empurra o ponto focal da imagem para a esquerda no visor */
+      background-position: 70% center;
+    }
+    
+    .hero-title {
+      font-size: 2.2rem; /* Ajuste leve para não quebrar tantas linhas */
+    }
   }
 </style>
 </head>
