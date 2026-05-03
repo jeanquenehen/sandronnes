@@ -1,10 +1,13 @@
 FROM nginx:alpine
 
-# Copia os arquivos do seu site para a pasta padrão do Nginx
+# Limpa qualquer arquivo padrão do Nginx para evitar conflitos
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copia todo o conteúdo da sua pasta atual para o diretório do Nginx
 COPY . /usr/share/nginx/html
 
-# Exclui o próprio Dockerfile da imagem final (opcional)
-RUN rm /usr/share/nginx/html/Dockerfile
+# Garante que as permissões de leitura estão corretas
+RUN chmod -R 755 /usr/share/nginx/html
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
