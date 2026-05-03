@@ -1,15 +1,22 @@
 FROM nginx:alpine
 
-# 1. Limpa tudo
-RUN rm -rf /usr/share/nginx/html/*
+# Remove configurações e arquivos padrão para evitar conflitos
+RUN rm -rf /usr/share/nginx/html/* && rm /etc/nginx/conf.d/default.conf
 
-# 2. Copia apenas o que é necessário para o site
-# Isso evita levar o Dockerfile e o docker-compose para dentro da pasta pública
-COPY index.html /usr/share/nginx/html/
-COPY assets/ /usr/share/nginx/html/assets/
-COPY 7.png /usr/share/nginx/html/
+# Criamos uma configuração interna para garantir o roteamento correto
+RUN echo 'server { \
+    listen 80; \
+    location / { \
+        root /usr/share/nginx/html; \
+        index index.html; \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
 
-# 3. Ajusta permissões explicitamente
+# Copia os arquivos do seu repositório
+COPY . /usr/share/nginx/html
+
+# Ajusta permissões para que o Nginx possa ler os arquivos
 RUN chmod -R 755 /usr/share/nginx/html && \
     chown -R nginx:nginx /usr/share/nginx/html
 
