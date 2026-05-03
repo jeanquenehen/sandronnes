@@ -1,591 +1,559 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="assets/favicon.png">
-<title>Sandronnes – Drones Agrícolas</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:wght@700;800;900&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --green:      #2e8b3a;
-    --green-lt:   #3faa4a;
-    --green-bg:   #f0faf1;
-    --blue:       #1e90c8;
-    --blue-bg:    #eef7fd;
-    --gold:       #e8960a;
-    --gold-bg:    #fef8ec;
-    --text:       #141a14;
-    --text-mid:   #3d5040;
-    --text-soft:  #697d6b;
-    --line:       #e2ebe2;
-    --white:      #ffffff;
-    --bg:         #f7fbf7;
-    --radius:     14px;
-  }
-
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--white); color: var(--text); overflow-x: hidden; }
-
- /* ─── NAVBAR ─── */
- nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-    /* Altere para 'transparent' para sumir com o fundo ou use um rgba baixo */
-    background: rgba(255, 255, 255, 0); 
-    backdrop-filter: blur(16px);
-
-    padding: 0 5vw;
-    display: flex; align-items: center; justify-content: space-between;
-    height: 70px;
- }
-
- .nav-logo { display: flex; align-items: center; gap: 10px; }
- .nav-logo img { height: 42px; }
- .nav-brand { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 900; color: var(--text); letter-spacing: -0.5px; }
- .nav-brand em { color: var(--green); font-style: normal; }
-
- .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
- .nav-links a { padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.88rem; font-weight: 500; color: var(--text-mid); transition: background .2s, color .2s; }
- .nav-links a:hover { background: var(--green-bg); color: var(--green); }
- .nav-links .cta { background: var(--green); color: white; font-weight: 700; padding: 10px 22px; }
- .nav-links .cta:hover { background: var(--green-lt); color: white; }
-
-  /* ─── HERO ─── */
-  #hero {
-    margin-top: 70px;
-    height: calc(100vh - 70px);
-    min-height: 560px;
-    position: relative;
-    display: flex; align-items: center;
-    overflow: hidden;
-  }
-
-  .hero-img {
-    position: absolute; inset: 0;
-    background: url('assets/drone_pul.png') center/cover no-repeat;
-  }
-
-  .hero-img::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(100deg, rgba(8,24,10,0.72) 0%, rgba(8,24,10,0.28) 55%, rgba(8,24,10,0.05) 100%);
-  }
-
-  .hero-content { position: relative; z-index: 2; padding: 0 6vw; max-width: 740px; animation: fadeUp .9s ease both; }
-
-  @keyframes fadeUp { from { opacity:0; transform:translateY(32px); } to { opacity:1; transform:translateY(0); } }
-
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.3);
-    backdrop-filter: blur(8px); color: white;
-    font-size: .78rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
-    padding: 7px 18px; border-radius: 100px; margin-bottom: 28px;
-  }
-
-  .hero-title {
-    font-family: 'Fraunces', serif;
-    font-size: clamp(2.8rem, 6vw, 5.5rem);
-    font-weight: 900; line-height: 1.05; color: white; margin-bottom: 22px;
-  }
-
-  .hero-title .hl { color: var(--green-lt) }
-
-  .hero-sub { font-size: 1.08rem; line-height: 1.78; color: rgba(255,255,255,0.82); font-weight: 300; max-width: 500px; margin-bottom: 40px; }
-
-  .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
-
-  .btn-white { background: white; color: var(--green); padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: .95rem; transition: transform .2s, box-shadow .2s; box-shadow: 0 4px 20px rgba(0,0,0,.15); }
-  .btn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.22); }
-
-  .btn-ghost { border: 1.5px solid rgba(255,255,255,.5); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: .95rem; transition: background .2s, border-color .2s; }
-  .btn-ghost:hover { background: rgba(255,255,255,.12); border-color: white; }
-
-  .hero-scroll { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 6px; color: rgba(255,255,255,.5); font-size: .7rem; letter-spacing: 2px; text-transform: uppercase; animation: bounce 2s ease-in-out infinite; }
-  .hero-scroll svg { width: 20px; opacity: .6; }
-  @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(7px); } }
-
-  /* ─── NUMBERS STRIP ─── */
-  .numbers-strip { background: var(--white); border-bottom: 1px solid var(--line); padding: 32px 6vw; }
-  .numbers-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
-  .number-item { text-align: center; }
-  .number-val { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 900; color: var(--green); line-height: 1; }
-  .number-label { font-size: .8rem; color: var(--text-soft); margin-top: 4px; font-weight: 500; }
-  .ndiv { width: 1px; height: 44px; background: var(--line); }
-
-  /* ─── SHARED ─── */
-  .sw { max-width: 1100px; margin: 0 auto; padding: 96px 6vw; }
-
-  .chip { display: inline-block; background: var(--green-bg); color: var(--green); font-size: .72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 6px 16px; border-radius: 100px; margin-bottom: 18px; }
-  .chip-blue { background: var(--blue-bg); color: var(--blue); }
-  .chip-gold  { background: var(--gold-bg);  color: var(--gold);  }
-
-  .big-title { font-family: 'Fraunces', serif; font-size: clamp(2rem, 4.5vw, 3.5rem); font-weight: 900; line-height: 1.1; letter-spacing: -.5px; color: var(--text); margin-bottom: 18px; }
-  .lead { font-size: 1.05rem; line-height: 1.8; color: var(--text-soft); font-weight: 400; max-width: 540px; }
-
-  /* ─── QUEM SOMOS ─── */
-  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
-
-  .about-img-wrap { position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 4/3; box-shadow: 0 24px 64px rgba(0,0,0,.12); }
-  .about-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
-  .about-img-wrap:hover img { transform: scale(1.04); }
-
-  .about-badge { position: absolute; bottom: 20px; left: 20px; background: white; border-radius: 12px; padding: 14px 20px; box-shadow: 0 8px 32px rgba(0,0,0,.12); display: flex; align-items: center; gap: 12px; }
-  .abi { width: 42px; height: 42px; background: var(--green-bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-  .abt strong { display: block; font-size: .95rem; font-weight: 700; }
-  .abt span { font-size: .78rem; color: var(--text-soft); }
-
-  .about-features { margin-top: 36px; display: flex; flex-direction: column; gap: 16px; }
-  .fr { display: flex; align-items: flex-start; gap: 16px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); transition: border-color .2s, background .2s; }
-  .fr:hover { border-color: var(--green); background: var(--green-bg); }
-  .fi { width: 40px; height: 40px; border-radius: 10px; background: var(--green-bg); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
-  .ft strong { display: block; font-weight: 700; font-size: .92rem; margin-bottom: 3px; }
-  .ft span { font-size: .85rem; color: var(--text-soft); line-height: 1.5; }
-
-  /* ─── SERVIÇOS ─── */
-  .sc { display: grid; grid-template-columns: repeat(2,1fr); gap: 28px; margin-top: 56px; }
-
-  .scard { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; transition: box-shadow .3s, transform .3s; }
-  .scard:hover { box-shadow: 0 16px 48px rgba(0,0,0,.09); transform: translateY(-4px); }
-
-  .simg-wrap { overflow: hidden; }
-  .simg { width: 100%; height: 240px; object-fit: cover; display: block; transition: transform .5s ease; }
-  .scard:hover .simg { transform: scale(1.04); }
-
-  .sbody { padding: 28px 30px 32px; }
-  .snum { font-family: 'Fraunces', serif; font-size: .78rem; font-weight: 700; color: var(--green); letter-spacing: 2px; margin-bottom: 10px; }
-  .sbody h3 { font-family: 'Fraunces', serif; font-size: 1.55rem; font-weight: 800; color: var(--text); line-height: 1.2; margin-bottom: 12px; }
-  .sbody p { font-size: .92rem; line-height: 1.75; color: var(--text-soft); margin-bottom: 22px; }
-
-  .stags { display: flex; flex-wrap: wrap; gap: 8px; }
-  .stag { font-size: .72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 14px; border-radius: 100px; background: var(--green-bg); color: var(--green); }
-  .stag-blue { background: var(--blue-bg); color: var(--blue); }
-  .stag-gold  { background: var(--gold-bg);  color: var(--gold);  }
-
-  /* ─── COMO FUNCIONA ─── */
-  .cf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
-  .cf-img { border-radius: 20px; overflow: hidden; height: 480px; box-shadow: 0 20px 60px rgba(0,0,0,.12); }
-  .cf-img img { width: 100%; height: 100%; object-fit: cover; }
-
-  .steps { display: flex; flex-direction: column; }
-  .step { display: flex; gap: 20px; padding: 28px 0; border-bottom: 1px solid var(--line); }
-  .step:last-child { border-bottom: none; }
-  .sn { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: var(--green-bg); color: var(--green); font-family: 'Fraunces', serif; font-weight: 900; font-size: 1rem; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(46,139,58,.2); }
-  .st strong { display: block; font-weight: 700; font-size: 1rem; margin-bottom: 5px; }
-  .st span { font-size: .88rem; color: var(--text-soft); line-height: 1.6; }
-
-  /* ─── CTA BAND ─── */
-  .cta-band { margin: 0 4vw; border-radius: 24px; overflow: hidden; position: relative; background: var(--green); }
-  .cta-band-bg { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1560493676-04071c5f467b?w=1400&q=80&fit=crop') center/cover no-repeat; opacity: .16; }
-  .cta-band-inner { position: relative; z-index: 1; padding: 72px 8vw; display: flex; align-items: center; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
-  .cta-band h2 { font-family: 'Fraunces', serif; font-size: clamp(1.8rem,4vw,3rem); font-weight: 900; color: white; line-height: 1.15; max-width: 500px; }
-  .cta-band h2 em { color: #a8f0b8; font-style: normal; }
-  .cta-btns { 
-    display: flex; 
-    gap: 14px; 
-    flex-wrap: wrap; 
-    align-items: center; /* Centraliza os botões verticalmente entre si */
-    justify-content: center; /* Opcional: centraliza os botões horizontalmente no meio da tela */
-  }
-  .btn-go img {  height: 18px; width: auto;  flex-shrink: 0; margin-right: 10px; }
-  .btn-go { border: 2px solid rgba(255,255,255,.5); color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: .95rem; transition: background .2s; }
-  .btn-go:hover { background: rgba(255,255,255,.12); }
-
-  /* ─── CONTATO ─── */
-  .cg { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
-  .cc-list { display: flex; flex-direction: column; gap: 14px; margin-top: 36px; }
-  .cc { display: flex; align-items: center; gap: 18px; padding: 20px 22px; background: var(--white); border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: var(--text); transition: border-color .25s, box-shadow .25s, transform .2s; }
-  .cc:hover { border-color: var(--green); box-shadow: 0 6px 24px rgba(46,139,58,.1); transform: translateX(4px); }
-  .cci { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
-  .cci-g { background: var(--green-bg); }
-  .cci-o { background: var(--gold-bg); }
-  .cci-b { background: var(--blue-bg); }
-  .cct strong { display: block; font-size: .74rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-soft); margin-bottom: 3px; font-weight: 600; }
-  .cct span { font-size: .98rem; font-weight: 600; }
-
-  .fp { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 44px 40px; box-shadow: 0 8px 40px rgba(0,0,0,.06); }
-  .fp h3 { font-family: 'Fraunces', serif; font-size: 1.7rem; font-weight: 800; margin-bottom: 6px; }
-  .fp > p { font-size: .88rem; color: var(--text-soft); margin-bottom: 28px; }
-  .fg { margin-bottom: 15px; }
-  .fg label { display: block; font-size: .76rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-soft); margin-bottom: 7px; }
-  .fg input, .fg textarea, .fg select { width: 100%; border: 1.5px solid var(--line); border-radius: 8px; padding: 12px 15px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: .93rem; color: var(--text); background: var(--bg); outline: none; transition: border-color .2s, background .2s; }
-  .fg input:focus, .fg textarea:focus, .fg select:focus { border-color: var(--green); background: var(--white); }
-  .fg textarea { resize: vertical; min-height: 96px; }
-  .btn-sub { width: 100%; background: var(--green); color: white; border: none; border-radius: 8px; padding: 14px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background .2s, transform .15s; margin-top: 6px; }
-  .btn-sub:hover { background: var(--green-lt); transform: translateY(-1px); }
-
-  /* ─── FOOTER ─── */
-  footer { background: #0e1f10; padding: 48px 6vw 30px; margin-top: 80px; }
-  .ft-top { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; padding-bottom: 28px; }
-  .ft-brand { font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 900; color: white; }
-  .ft-brand em { color: #7ee89a; font-style: normal; }
-  .ft-tag { font-size: .8rem; color: rgba(255,255,255,.38); margin-top: 3px; }
-  .ft-soc { display: flex; gap: 10px; }
-  .ft-soc a { width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.45); text-decoration: none; font-size: 1rem; transition: border-color .2s, color .2s, background .2s; }
-  .ft-soc a:hover { border-color: var(--green); color: var(--green); background: rgba(46,139,58,.1); }
-  .ft-bot { max-width: 1100px; margin: 22px auto 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  .ft-copy { font-size: .78rem; color: rgba(255,255,255,.28); }
-  .ft-ph { font-size: .8rem; color: rgba(255,255,255,.4); }
-  .ft-ph a { color: #7ee89a; text-decoration: none; font-weight: 600; }
-
-  /* Container dos textos */
-  .brand-wrapper {
-    display: flex;
-    flex-direction: column; /* Faz um ficar embaixo do outro */
-    line-height: 1; /* Remove espaços excessivos entre as linhas */
-  }
-
-  /* Ajuste no título principal para não ter margem extra */
-  .nav-brand {
-    font-family: 'Fraunces', serif;
-    font-size: 1.4rem;
-    font-weight: 900;
-    color: var(--text);
-    letter-spacing: -0.5px;
-  }
-
-  /* O subtítulo com 40% a menos (60% do tamanho do original) */
-  .nav-subtitle {
-    font-size: calc(0.6rem);
-    font-weight: 500;
-    color: var(--text-mid);
-    text-transform: uppercase; 
-    letter-spacing: 0.5px;
-  }
-
-  /* Ajuste para as imagens dentro dos círculos de ícone */
-  .cci img {
-    width: 24px;   /* Ajuste conforme o tamanho desejado */
-    height: 24px;  /* Mantém a proporção */
-    object-fit: contain;
-    display: block;
-  }
-
-  /* Centralização do ícone caso a .cci use flexbox */
-  .cci {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .ft-soc {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-  }
-
-  .ft-soc a {
-    display: inline-flex;
-    transition: opacity 0.2s;
-  }
-
-  .ft-soc a:hover {
-    opacity: 0.7; /* Efeito visual ao passar o mouse */
-  }
-
-  .ft-soc img {
-    width: 20px;  /* Tamanho menor para o rodapé */
-    height: 20px;
-    object-fit: contain;
-  }
-
-  /* ─── RESPONSIVE ─── */
-  @media (max-width: 820px) {
-    .nav-links { display: none; }
-    .about-grid, .sc, .cg, .cf-grid { grid-template-columns: 1fr; }
-    .cf-img { height: 260px; }
-    .ndiv { display: none; }
-    .numbers-inner { justify-content: center; gap: 28px; }
-    .cta-band-inner { flex-direction: column; text-align: center; }
-    .cta-btns { justify-content: center; }
-    .fp { padding: 28px 20px; }
-    .hero-title { font-size: 2.4rem; }
-    #hero {
-    margin-top: 50px; /* Reduz o espaçamento em relação à Navbar no mobile */
-    min-height: 480px; /* Reduz a altura mínima para o conteúdo subir */
-    align-items: flex-start; /* Alinha o conteúdo ao topo em vez do centro */
-    }
-
-    .hero-content {
-      padding-top: 90px; /* Controla exatamente a que distância do topo o badge ficará */
-    }
-
-    .hero-badge {
-      margin-bottom: 15px; /* Reduz o espaço entre o badge e o título principal */
-    }
-  }
-  /* Ajuste fino da imagem do drone no celular */
-  @media (max-width: 480px) {
-    .hero-img {
-      /* 70% empurra o ponto focal da imagem para a esquerda no visor */
-      background-position: 70% center;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
     
-    .hero-title {
-      font-size: 2.2rem; /* Ajuste leve para não quebrar tantas linhas */
+    <!-- SEO BÁSICO -->
+    <title>Sandronnes – Pulverização e Serviços com Drones Agrícolas</title>
+    <meta name="description" content="Aumente a produtividade da sua lavoura com a Sandronnes. Especialistas em pulverização aérea e dispensação de insumos sólidos com drones de alta precisão em Brasília e Centro-Oeste.">
+    <link rel="canonical" href="https://www.sandronnes.com.br/">
+    <meta name="author" content="Sandronnes">
+    <meta name="keywords" content="drone agrícola, pulverização aérea, agricultura de precisão, dispensação de insumos, tecnologia no campo, Brasília">
+
+    <!-- OPEN GRAPH (Para compartilhamento em Redes Sociais/WhatsApp) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Sandronnes – Tecnologia Aérea para o Agronegócio">
+    <meta property="og:description" content="Soluções de pulverização e dispensação de insumos com drones. Precisão e economia para o campo.">
+    <meta property="og:image" content="https://www.sandronnes.com.br/assets/drone_pul.png">
+    <meta property="og:url" content="https://www.sandronnes.com.br/">
+
+    <!-- DADOS ESTRUTURADOS (Schema.org) - AJUDA NA INDEXAÇÃO DO GOOGLE -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "AgriculturalService",
+      "name": "Sandronnes – Drones Agrícolas",
+      "alternateName": "Sandronnes",
+      "description": "Serviços de pulverização e dispensação de insumos com drones de alta performance.",
+      "url": "https://www.sandronnes.com.br/",
+      "logo": "https://www.sandronnes.com.br/assets/Sandronnes_logo.png",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Porto Alegre",
+        "addressRegion": "RS",
+        "addressCountry": "BR"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "-14.625368",
+        "longitude": "-57.485376"
+      },
+      "telephone": "+5561981391006",
+      "image": "https://www.sandronnes.com.br/assets/drone_pul.png",
+      "priceRange": "$$",
+      "areaServed": ["Mato Grosso", "Goiás", "Centro-Oeste", "Rio Grande do Sul"],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Serviços Agrícolas",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Pulverização com Drone"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Dispensação de Sólidos"
+            }
+          }
+        ]
+      }
     }
-  }
-</style>
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:wght@700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --green:      #2e8b3a;
+            --green-lt:   #3faa4a;
+            --green-bg:   #f0faf1;
+            --blue:       #1e90c8;
+            --blue-bg:    #eef7fd;
+            --gold:       #e8960a;
+            --gold-bg:    #fef8ec;
+            --text:       #141a14;
+            --text-mid:   #3d5040;
+            --text-soft:  #697d6b;
+            --line:       #e2ebe2;
+            --white:      #ffffff;
+            --bg:         #f7fbf7;
+            --radius:     14px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--white); color: var(--text); overflow-x: hidden; }
+
+        /* ─── NAVBAR ─── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+            background: rgba(255, 255, 255, 0); 
+            backdrop-filter: blur(16px);
+            padding: 0 5vw;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 70px;
+        }
+
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .nav-logo img { height: 42px; }
+        .nav-brand { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 900; color: var(--text); letter-spacing: -0.5px; }
+        .nav-brand em { color: var(--green); font-style: normal; }
+
+        .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
+        .nav-links a { padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.88rem; font-weight: 500; color: var(--text-mid); transition: background .2s, color .2s; }
+        .nav-links a:hover { background: var(--green-bg); color: var(--green); }
+        .nav-links .cta { background: var(--green); color: white; font-weight: 700; padding: 10px 22px; }
+        .nav-links .cta:hover { background: var(--green-lt); color: white; }
+
+        /* ─── HERO ─── */
+        #hero {
+            margin-top: 70px;
+            height: calc(100vh - 70px);
+            min-height: 560px;
+            position: relative;
+            display: flex; align-items: center;
+            overflow: hidden;
+        }
+
+        .hero-img {
+            position: absolute; inset: 0;
+            background: url('assets/drone_pul.png') center/cover no-repeat;
+        }
+
+        .hero-img::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(100deg, rgba(8,24,10,0.72) 0%, rgba(8,24,10,0.28) 55%, rgba(8,24,10,0.05) 100%);
+        }
+
+        .hero-content { position: relative; z-index: 2; padding: 0 6vw; max-width: 740px; animation: fadeUp .9s ease both; }
+
+        @keyframes fadeUp { from { opacity:0; transform:translateY(32px); } to { opacity:1; transform:translateY(0); } }
+
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(8px); color: white;
+            font-size: .78rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+            padding: 7px 18px; border-radius: 100px; margin-bottom: 28px;
+        }
+
+        .hero-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2.8rem, 6vw, 5.5rem);
+            font-weight: 900; line-height: 1.05; color: white; margin-bottom: 22px;
+        }
+
+        .hero-title .hl { color: var(--green-lt) }
+
+        .hero-sub { font-size: 1.08rem; line-height: 1.78; color: rgba(255,255,255,0.82); font-weight: 300; max-width: 500px; margin-bottom: 40px; }
+
+        .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+
+        .btn-white { background: white; color: var(--green); padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: .95rem; transition: transform .2s, box-shadow .2s; box-shadow: 0 4px 20px rgba(0,0,0,.15); }
+        .btn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.22); }
+
+        .btn-ghost { border: 1.5px solid rgba(255,255,255,.5); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: .95rem; transition: background .2s, border-color .2s; }
+        .btn-ghost:hover { background: rgba(255,255,255,.12); border-color: white; }
+
+        .hero-scroll { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 6px; color: rgba(255,255,255,.5); font-size: .7rem; letter-spacing: 2px; text-transform: uppercase; animation: bounce 2s ease-in-out infinite; }
+        .hero-scroll svg { width: 20px; opacity: .6; }
+        @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(7px); } }
+
+        /* ─── NUMBERS STRIP ─── */
+        .numbers-strip { background: var(--white); border-bottom: 1px solid var(--line); padding: 32px 6vw; }
+        .numbers-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+        .number-item { text-align: center; }
+        .number-val { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 900; color: var(--green); line-height: 1; }
+        .number-label { font-size: .8rem; color: var(--text-soft); margin-top: 4px; font-weight: 500; }
+        .ndiv { width: 1px; height: 44px; background: var(--line); }
+
+        /* ─── SHARED ─── */
+        .sw { max-width: 1100px; margin: 0 auto; padding: 96px 6vw; }
+
+        .chip { display: inline-block; background: var(--green-bg); color: var(--green); font-size: .72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 6px 16px; border-radius: 100px; margin-bottom: 18px; }
+        .chip-blue { background: var(--blue-bg); color: var(--blue); }
+        .chip-gold  { background: var(--gold-bg);  color: var(--gold);  }
+
+        .big-title { font-family: 'Fraunces', serif; font-size: clamp(2rem, 4.5vw, 3.5rem); font-weight: 900; line-height: 1.1; letter-spacing: -.5px; color: var(--text); margin-bottom: 18px; }
+        .lead { font-size: 1.05rem; line-height: 1.8; color: var(--text-soft); font-weight: 400; max-width: 540px; }
+
+        /* ─── QUEM SOMOS ─── */
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+
+        .about-img-wrap { position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 4/3; box-shadow: 0 24px 64px rgba(0,0,0,.12); }
+        .about-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
+        .about-img-wrap:hover img { transform: scale(1.04); }
+
+        .about-badge { position: absolute; bottom: 20px; left: 20px; background: white; border-radius: 12px; padding: 14px 20px; box-shadow: 0 8px 32px rgba(0,0,0,.12); display: flex; align-items: center; gap: 12px; }
+        .abi { width: 42px; height: 42px; background: var(--green-bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .abt strong { display: block; font-size: .95rem; font-weight: 700; }
+        .abt span { font-size: .78rem; color: var(--text-soft); }
+
+        .about-features { margin-top: 36px; display: flex; flex-direction: column; gap: 16px; }
+        .fr { display: flex; align-items: flex-start; gap: 16px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); transition: border-color .2s, background .2s; }
+        .fr:hover { border-color: var(--green); background: var(--green-bg); }
+        .fi { width: 40px; height: 40px; border-radius: 10px; background: var(--green-bg); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+        .ft strong { display: block; font-weight: 700; font-size: .92rem; margin-bottom: 3px; }
+        .ft span { font-size: .85rem; color: var(--text-soft); line-height: 1.5; }
+
+        /* ─── SERVIÇOS ─── */
+        .sc { display: grid; grid-template-columns: repeat(2,1fr); gap: 28px; margin-top: 56px; }
+
+        .scard { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; transition: box-shadow .3s, transform .3s; }
+        .scard:hover { box-shadow: 0 16px 48px rgba(0,0,0,.09); transform: translateY(-4px); }
+
+        .simg-wrap { overflow: hidden; }
+        .simg { width: 100%; height: 240px; object-fit: cover; display: block; transition: transform .5s ease; }
+        .scard:hover .simg { transform: scale(1.04); }
+
+        .sbody { padding: 28px 30px 32px; }
+        .snum { font-family: 'Fraunces', serif; font-size: .78rem; font-weight: 700; color: var(--green); letter-spacing: 2px; margin-bottom: 10px; }
+        .sbody h3 { font-family: 'Fraunces', serif; font-size: 1.55rem; font-weight: 800; color: var(--text); line-height: 1.2; margin-bottom: 12px; }
+        .sbody p { font-size: .92rem; line-height: 1.75; color: var(--text-soft); margin-bottom: 22px; }
+
+        .stags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .stag { font-size: .72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 14px; border-radius: 100px; background: var(--green-bg); color: var(--green); }
+        .stag-blue { background: var(--blue-bg); color: var(--blue); }
+        .stag-gold  { background: var(--gold-bg);  color: var(--gold);  }
+
+        /* ─── COMO FUNCIONA ─── */
+        .cf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+        .cf-img { border-radius: 20px; overflow: hidden; height: 480px; box-shadow: 0 20px 60px rgba(0,0,0,.12); }
+        .cf-img img { width: 100%; height: 100%; object-fit: cover; }
+
+        .steps { display: flex; flex-direction: column; }
+        .step { display: flex; gap: 20px; padding: 28px 0; border-bottom: 1px solid var(--line); }
+        .step:last-child { border-bottom: none; }
+        .sn { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: var(--green-bg); color: var(--green); font-family: 'Fraunces', serif; font-weight: 900; font-size: 1rem; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(46,139,58,.2); }
+        .st strong { display: block; font-weight: 700; font-size: 1rem; margin-bottom: 5px; }
+        .st span { font-size: .88rem; color: var(--text-soft); line-height: 1.6; }
+
+        /* ─── CTA BAND ─── */
+        .cta-band { margin: 0 4vw; border-radius: 24px; overflow: hidden; position: relative; background: var(--green); }
+        .cta-band-bg { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1560493676-04071c5f467b?w=1400&q=80&fit=crop') center/cover no-repeat; opacity: .16; }
+        .cta-band-inner { position: relative; z-index: 1; padding: 72px 8vw; display: flex; align-items: center; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
+        .cta-band h2 { font-family: 'Fraunces', serif; font-size: clamp(1.8rem,4vw,3rem); font-weight: 900; color: white; line-height: 1.15; max-width: 500px; }
+        .cta-band h2 em { color: #a8f0b8; font-style: normal; }
+        .cta-btns { 
+            display: flex; 
+            gap: 14px; 
+            flex-wrap: wrap; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .btn-go img {  height: 18px; width: auto;  flex-shrink: 0; margin-right: 10px; }
+        .btn-go { border: 2px solid rgba(255,255,255,.5); color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: .95rem; transition: background .2s; }
+        .btn-go:hover { background: rgba(255,255,255,.12); }
+
+        /* ─── CONTATO ─── */
+        .cg { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+        .cc-list { display: flex; flex-direction: column; gap: 14px; margin-top: 36px; }
+        .cc { display: flex; align-items: center; gap: 18px; padding: 20px 22px; background: var(--white); border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: var(--text); transition: border-color .25s, box-shadow .25s, transform .2s; }
+        .cc:hover { border-color: var(--green); box-shadow: 0 6px 24px rgba(46,139,58,.1); transform: translateX(4px); }
+        .cci { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+        .cci-g { background: var(--green-bg); }
+        .cci-o { background: var(--gold-bg); }
+        .cci-b { background: var(--blue-bg); }
+        .cct strong { display: block; font-size: .74rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-soft); margin-bottom: 3px; font-weight: 600; }
+        .cct span { font-size: .98rem; font-weight: 600; }
+
+        .brand-wrapper {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .nav-brand {
+            font-family: 'Fraunces', serif;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-subtitle {
+            font-size: calc(0.6rem);
+            font-weight: 500;
+            color: var(--text-mid);
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+        }
+
+        .cci img {
+            width: 24px;   
+            height: 24px;  
+            object-fit: contain;
+            display: block;
+        }
+
+        /* ─── FOOTER ─── */
+        footer { background: #0e1f10; padding: 48px 6vw 30px; margin-top: 80px; }
+        .ft-top { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; padding-bottom: 28px; }
+        .ft-brand { font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 900; color: white; }
+        .ft-brand em { color: #7ee89a; font-style: normal; }
+        .ft-tag { font-size: .8rem; color: rgba(255,255,255,.38); margin-top: 3px; }
+        .ft-bot { max-width: 1100px; margin: 22px auto 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .ft-copy { font-size: .78rem; color: rgba(255,255,255,.28); }
+
+        @media (max-width: 820px) {
+            .nav-links { display: none; }
+            .about-grid, .sc, .cg, .cf-grid { grid-template-columns: 1fr; }
+            .cf-img { height: 260px; }
+            .ndiv { display: none; }
+            .numbers-inner { justify-content: center; gap: 28px; }
+            .cta-band-inner { flex-direction: column; text-align: center; }
+            .cta-btns { justify-content: center; }
+            .hero-title { font-size: 2.4rem; }
+            #hero { margin-top: 50px; min-height: 480px; align-items: flex-start; }
+            .hero-content { padding-top: 90px; }
+            .hero-badge { margin-bottom: 15px; }
+        }
+        @media (max-width: 480px) {
+            .hero-img { background-position: 70% center; }
+            .hero-title { font-size: 2.2rem; }
+        }
+    </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <div class="nav-logo">
-    <img src="assets/Sandronnes_logo.png" alt="Sandronnes">
-    <div class="brand-wrapper">
-      <span class="nav-brand">Sandron<em>nes</em></span>
-      <span class="nav-subtitle">Soluções agrícolas</span>
-    </div>
-  </div>
-  <ul class="nav-links">
-    <li><a href="#quem-somos">Quem Somos</a></li>
-    <li><a href="#servicos">Serviços</a></li>
-    <li><a href="#como-funciona">Como Funciona</a></li>
-    <li><a href="#contato" class="cta">Fale Conosco</a></li>
-  </ul>
-</nav>
-
-<!-- HERO -->
-<section id="hero">
-  <div class="hero-img"></div>
-  <div class="hero-content">
-    <div class="hero-badge">🌿 Tecnologia Agrícola de Precisão</div>
-    <h1 class="hero-title">
-      O futuro do campo<br> voa com<br><span class="hl">Sandronnes</span>
-    </h1>
-    <p class="hero-sub">Pulverização e dispensação de insumos com drones de alta performance. Mais produtividade, menos desperdício para a sua lavoura.</p>
-    <div class="hero-btns">
-      <a href="#servicos" class="btn-white">Conheça os serviços</a>
-      <a href="#contato" class="btn-ghost">Solicitar orçamento</a>
-    </div>
-  </div>
-  <div class="hero-scroll">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-    Scroll
-  </div>
-</section>
-
-<!-- NUMBERS -->
-<div class="numbers-strip">
-  <div class="numbers-inner">
-    <div class="number-item"><div class="number-val">98%</div><div class="number-label">Precisão na aplicação</div></div>
-    <div class="ndiv"></div>
-    <div class="number-item"><div class="number-val">3×</div><div class="number-label">Mais rápido que o convencional</div></div>
-    <div class="ndiv"></div>
-    <div class="number-item"><div class="number-val">↓40%</div><div class="number-label">Redução de insumos</div></div>
-    <div class="ndiv"></div>
-    <div class="number-item"><div class="number-val">100%</div><div class="number-label">Rastreável e documentado</div></div>
-  </div>
-</div>
-
-<!-- QUEM SOMOS -->
-<section id="quem-somos" style="background:var(--white);">
-  <div class="sw">
-    <div class="about-grid">
-      <div class="about-img-wrap">
-        <img src="https://images.unsplash.com/photo-1713952160141-8364b2fca485?q=80&w=3132&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Drone agrícola voando sobre plantação">
-        <div class="about-badge">
-          <div class="abi">🚁</div>
-          <div class="abt">
-            <strong>Operação Certificada</strong>
-            <span>Pilotos certificados ANAC</span>
-          </div>
-        </div>
-      </div>
-      <div>
-        <span class="chip">● Quem Somos</span>
-        <h2 class="big-title">Inovação que decola no campo</h2>
-        <p class="lead">A Sandronnes nasceu da visão de transformar o agronegócio com tecnologia acessível e eficiente. Com drones de última geração, entregamos precisão de milímetros em cada hectare da sua lavoura, aliando resultado ao respeito ao meio ambiente.</p>
-        <div class="about-features">
-          <div class="fr">
-            <div class="fi">🌿</div>
-            <div class="ft">
-              <strong>Sustentabilidade no campo</strong>
-              <span>Menos produto químico no ambiente com aplicação direcionada e controlada, reduzindo impacto ambiental.</span>
+<!-- HEADER SEMÂNTICO -->
+<header>
+    <nav>
+        <a href="/" class="nav-logo" title="Ir para o início">
+            <img src="assets/Sandronnes_logo.png" alt="Logotipo Sandronnes - Drones Agrícolas">
+            <div class="brand-wrapper">
+                <span class="nav-brand">Sandron<em>nes</em></span>
+                <span class="nav-subtitle">Soluções agrícolas</span>
             </div>
-          </div>
-          <div class="fr">
-            <div class="fi">📍</div>
-            <div class="ft">
-              <strong>Precisão GPS centimétrica</strong>
-              <span>Tecnologia RTK garante cobertura uniforme e sem falhas em toda a área da propriedade.</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#quem-somos">Quem Somos</a></li>
+            <li><a href="#servicos">Serviços</a></li>
+            <li><a href="#como-funciona">Como Funciona</a></li>
+            <li><a href="#contato" class="cta">Fale Conosco</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+    <!-- HERO -->
+    <section id="hero">
+        <div class="hero-img"></div>
+        <div class="hero-content">
+            <div class="hero-badge">🌿 Tecnologia Agrícola de Precisão</div>
+            <h1 class="hero-title">
+                O futuro do campo<br> voa com<br><span class="hl">Sandronnes</span>
+            </h1>
+            <p class="hero-sub">Pulverização e dispensação de insumos com drones de alta performance. Mais produtividade e sustentabilidade para sua lavoura.</p>
+            <div class="hero-btns">
+                <a href="#servicos" class="btn-white">Conheça os serviços</a>
+                <a href="#contato" class="btn-ghost">Solicitar orçamento</a>
             </div>
-          </div>
-          <div class="fr">
-            <div class="fi">📊</div>
-            <div class="ft">
-              <strong>Relatório completo por operação</strong>
-              <span>Cada aplicação gera dados rastreáveis de área coberta, dosagem e eficiência da operação.</span>
+        </div>
+        <div class="hero-scroll">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            Scroll
+        </div>
+    </section>
+
+    <!-- NUMBERS -->
+    <section class="numbers-strip">
+        <div class="numbers-inner">
+            <div class="number-item"><div class="number-val">98%</div><div class="number-label">Precisão na aplicação</div></div>
+            <div class="ndiv"></div>
+            <div class="number-item"><div class="number-val">3×</div><div class="number-label">Mais rápido que o convencional</div></div>
+            <div class="ndiv"></div>
+            <div class="number-item"><div class="number-val">↓40%</div><div class="number-label">Redução de insumos</div></div>
+            <div class="ndiv"></div>
+            <div class="number-item"><div class="number-val">100%</div><div class="number-label">Rastreável e documentado</div></div>
+        </div>
+    </section>
+
+    <!-- QUEM SOMOS -->
+    <section id="quem-somos">
+        <div class="sw">
+            <div class="about-grid">
+                <div class="about-img-wrap">
+                    <img src="https://images.unsplash.com/photo-1713952160141-8364b2fca485?q=80&w=3132&auto=format&fit=crop" alt="Operação de drone agrícola Sandronnes voando sobre plantação verde">
+                    <div class="about-badge">
+                        <div class="abi">🚁</div>
+                        <div class="abt">
+                            <strong>Operação Certificada</strong>
+                            <span>Pilotos certificados ANAC</span>
+                        </div>
+                    </div>
+                </div>
+                <article>
+                    <span class="chip">● Quem Somos</span>
+                    <h2 class="big-title">Inovação que decola no campo</h2>
+                    <p class="lead">A Sandronnes transforma o agronegócio com tecnologia acessível e eficiente. Com drones de última geração, entregamos precisão de milímetros em cada hectare da sua lavoura.</p>
+                    
+                    <div class="about-features">
+                        <div class="fr">
+                            <div class="fi">🌿</div>
+                            <div class="ft">
+                                <strong>Sustentabilidade no campo</strong>
+                                <span>Menos produto químico no ambiente com aplicação direcionada e controlada.</span>
+                            </div>
+                        </div>
+                        <div class="fr">
+                            <div class="fi">📍</div>
+                            <div class="ft">
+                                <strong>Precisão GPS centimétrica</strong>
+                                <span>Tecnologia RTK garante cobertura uniforme e sem falhas em toda a propriedade.</span>
+                            </div>
+                        </div>
+                        <div class="fr">
+                            <div class="fi">📊</div>
+                            <div class="ft">
+                                <strong>Relatórios de Operação</strong>
+                                <span>Cada aplicação gera dados rastreáveis de área coberta e dosagem.</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- SERVIÇOS -->
-<section id="servicos" style="background:var(--bg);">
-  <div class="sw">
-    <span class="chip chip-blue">● Nossos Serviços</span>
-    <h2 class="big-title">Soluções aéreas para<br>sua lavoura</h2>
-    <p class="lead">Duas frentes especializadas de atuação para maximizar eficiência e produtividade da sua propriedade rural.</p>
+    <!-- SERVIÇOS -->
+    <section id="servicos" style="background:var(--bg);">
+        <div class="sw">
+            <span class="chip chip-blue">● Nossos Serviços</span>
+            <h2 class="big-title">Soluções aéreas para<br>sua lavoura</h2>
+            <p class="lead">Frentes especializadas para maximizar a produtividade da sua propriedade rural.</p>
 
-    <div class="sc">
-      <!-- Pulverização -->
-      <div class="scard">
-        <div class="simg-wrap">
-          <img class="simg" src="https://framerusercontent.com/images/ZOc9FUHojG1loerkXYwEhE3HoRU.jpg?scale-down-to=512" alt="Drone pulverizando cultura agrícola">
-        </div>
-        <div class="sbody">
-          <div class="snum">01 — SERVIÇO</div>
-          <h3>Pulverização com Drone</h3>
-          <p>Aplicação precisa de defensivos agrícolas, herbicidas, fungicidas e fertilizantes foliares. Cobertura uniforme com controle total de dosagem e registro completo da área aplicada. Funciona em qualquer tipo de cultura.</p>
-          <div class="stags">
-            <span class="stag">Defensivos</span>
-            <span class="stag stag-blue">Fungicidas</span>
-            <span class="stag">Fertilizantes</span>
-            <span class="stag stag-blue">Alta Precisão</span>
-          </div>
-        </div>
-      </div>
+            <div class="sc">
+                <!-- Pulverização -->
+                <article class="scard">
+                    <div class="simg-wrap">
+                        <img class="simg" src="https://framerusercontent.com/images/ZOc9FUHojG1loerkXYwEhE3HoRU.jpg?scale-down-to=512" alt="Drone agrícola realizando pulverização de defensivos na lavoura">
+                    </div>
+                    <div class="sbody">
+                        <div class="snum">01 — SERVIÇO</div>
+                        <h3>Pulverização com Drone</h3>
+                        <p>Aplicação precisa de defensivos agrícolas, herbicidas e fertilizantes foliares com registro completo da área.</p>
+                        <div class="stags">
+                            <span class="stag">Defensivos</span>
+                            <span class="stag stag-blue">Fungicidas</span>
+                            <span class="stag">Fertilizantes</span>
+                        </div>
+                    </div>
+                </article>
 
-      <!-- Sólidos -->
-      <div class="scard">
-        <div class="simg-wrap">
-          <img class="simg" src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80&fit=crop" alt="Plantação de grãos vista aérea">
-        </div>
-        <div class="sbody">
-          <div class="snum">02 — SERVIÇO</div>
-          <h3>Dispensador de Sólidos</h3>
-          <p>Distribuição aérea de insumos sólidos como sementes, calcário granulado e fertilizantes. Tecnologia especializada garante distribuição homogênea em grandes áreas com economia de tempo e logística, sem maquinário pesado.</p>
-          <div class="stags">
-            <span class="stag">Sementes</span>
-            <span class="stag stag-gold">Calcário</span>
-            <span class="stag stag-gold">Fertilizantes</span>
-            <span class="stag">Granulados</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- COMO FUNCIONA -->
-<section id="como-funciona" style="background:var(--white);">
-  <div class="sw">
-    <div class="cf-grid">
-      <div>
-        <span class="chip chip-gold">● Como Funciona</span>
-        <h2 class="big-title">Do contato ao campo em poucos passos</h2>
-        <div class="steps" style="margin-top:36px;">
-          <div class="step">
-            <div class="sn">01</div>
-            <div class="st"><strong>Contato e Diagnóstico</strong><span>Nossa equipe analisa área, cultura e necessidade para montar a melhor estratégia de aplicação para sua propriedade.</span></div>
-          </div>
-          <div class="step">
-            <div class="sn">02</div>
-            <div class="st"><strong>Planejamento de Voo</strong><span>Mapeamento georreferenciado da propriedade e programação autônoma do trajeto do drone com máxima eficiência.</span></div>
-          </div>
-          <div class="step">
-            <div class="sn">03</div>
-            <div class="st"><strong>Execução Precisa</strong><span>Piloto certificado realiza a operação com total segurança, eficiência e registro em tempo real de cada detalhe.</span></div>
-          </div>
-          <div class="step">
-            <div class="sn">04</div>
-            <div class="st"><strong>Relatório & Entrega</strong><span>Você recebe relatório completo com área coberta, dosagem aplicada e mapa detalhado da operação realizada.</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="cf-img">
-        <img src="https://plus.unsplash.com/premium_photo-1756134901617-a4a0125545dd?q=80&w=2312&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Operador de drone agrícola no campo">
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA BAND -->
-<div class="cta-band">
-  <div class="cta-band-bg"></div>
-  <div class="cta-band-inner">
-    <h2>Pronto para <em>aumentar a produtividade</em> da sua lavoura?</h2>
-    <div class="cta-btns">
-      <a href="#contato" class="btn-white">Solicitar orçamento grátis</a>
-      <a href="tel:+5561981391006" class="btn-go"><img src="assets/tel.png" alt="Telefone">Ligar agora</a>
-    </div>
-  </div>
-</div>
-
-<!-- CONTATO -->
-<section id="contato" style="background:var(--bg); margin-top: 80px; padding-bottom: 0;">
-  <div class="sw" style="padding-top:0; padding-bottom: 96px;">
-    <!-- Removemos a necessidade de grid e usamos flex-direction column centralizado -->
-    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 700px; margin: 0 auto;">
-      
-      <div>
-        <span class="chip">● Contato</span>
-        <h2 class="big-title">Fale com a gente</h2>
-        <p class="lead">Entre em contato pelo canal de sua preferência. Atendemos todo o Centro-Oeste e demais regiões do Brasil.</p>
-        
-        <!-- A lista de contatos também centralizada -->
-        <div class="cc-list" style="display: flex; flex-direction: column; gap: 16px; align-items: center; width: 100%;">
-          
-          <!-- WhatsApp -->
-          <a href="https://wa.me/5561981391006?text=Olá!%20Gostaria%20de%20mais%20informações%20sobre%20as%20soluções%20agrícolas." target="_blank" class="cc" style="width: 100%; max-width: 400px; justify-content: flex-start; text-align: left;">
-            <div class="cci cci-g">
-              <img src="assets/whatsapp.png" alt="WhatsApp">
+                <!-- Sólidos -->
+                <article class="scard">
+                    <div class="simg-wrap">
+                        <img class="simg" src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80&fit=crop" alt="Drone dispersando sementes e insumos sólidos em plantação">
+                    </div>
+                    <div class="sbody">
+                        <div class="snum">02 — SERVIÇO</div>
+                        <h3>Dispensador de Sólidos</h3>
+                        <p>Distribuição de sementes, calcário e fertilizantes granulados com economia de tempo e sem compactar o solo.</p>
+                        <div class="stags">
+                            <span class="stag">Sementes</span>
+                            <span class="stag stag-gold">Calcário</span>
+                            <span class="stag stag-gold">Fertilizantes</span>
+                        </div>
+                    </div>
+                </article>
             </div>
-            <div class="cct">
-              <strong>Telefone / WhatsApp</strong>
-              <span>(61) 98139-1006</span>
-            </div>
-          </a>
-
-          <!-- Instagram -->
-          <a href="https://instagram.com/sandronnes_imagens" target="_blank" class="cc" style="width: 100%; max-width: 400px; justify-content: flex-start; text-align: left;">
-            <div class="cci cci-o">
-              <img src="assets/instagram.png" alt="Instagram">
-            </div>
-            <div class="cct"><strong>Instagram</strong><span>@sandronnes_imagens</span></div>
-          </a>
-
-          <!-- Facebook -->
-          <a href="https://facebook.com/sandronnes_imagens" target="_blank" class="cc" style="width: 100%; max-width: 400px; justify-content: flex-start; text-align: left;">
-            <div class="cci cci-b">
-              <img src="assets/facebook.png" alt="Facebook">
-            </div>
-            <div class="cct"><strong>Facebook</strong><span>@sandronnes_imagens</span></div>
-          </a>          
         </div>
-      </div>      
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- FOOTER -->
+    <!-- COMO FUNCIONA -->
+    <section id="como-funciona">
+        <div class="sw">
+            <div class="cf-grid">
+                <div>
+                    <span class="chip chip-gold">● Como Funciona</span>
+                    <h2 class="big-title">Do contato ao campo em poucos passos</h2>
+                    <div class="steps" style="margin-top:36px;">
+                        <div class="step">
+                            <div class="sn">01</div>
+                            <div class="st"><strong>Diagnóstico</strong><span>Análise da área e cultura para montar a melhor estratégia de aplicação.</span></div>
+                        </div>
+                        <div class="step">
+                            <div class="sn">02</div>
+                            <div class="st"><strong>Planejamento</strong><span>Mapeamento georreferenciado e programação autônoma do trajeto do drone.</span></div>
+                        </div>
+                        <div class="step">
+                            <div class="sn">03</div>
+                            <div class="st"><strong>Execução</strong><span>Piloto certificado realiza a operação com total segurança e eficiência.</span></div>
+                        </div>
+                        <div class="step">
+                            <div class="sn">04</div>
+                            <div class="st"><strong>Relatório</strong><span>Você recebe o mapa detalhado da operação e o relatório de dosagem.</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cf-img">
+                    <img src="https://plus.unsplash.com/premium_photo-1756134901617-a4a0125545dd?q=80&w=2312&auto=format&fit=crop" alt="Operador da Sandronnes configurando drone agrícola no campo">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA BAND -->
+    <aside class="cta-band">
+        <div class="cta-band-bg"></div>
+        <div class="cta-band-inner">
+            <h2>Pronto para <em>aumentar a produtividade</em> da sua lavoura?</h2>
+            <div class="cta-btns">
+                <a href="#contato" class="btn-white">Solicitar orçamento grátis</a>
+                <a href="tel:+5561981391006" class="btn-go"><img src="assets/tel.png" alt="Ícone de telefone">Ligar agora</a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- CONTATO -->
+    <section id="contato" style="background:var(--bg); margin-top: 80px; padding-bottom: 0;">
+        <div class="sw" style="padding-top:0; padding-bottom: 96px;">
+            <div style="display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 700px; margin: 0 auto;">
+                <span class="chip">● Contato</span>
+                <h2 class="big-title">Fale com a gente</h2>
+                <p class="lead">Atendemos todo o Centro-Oeste e demais regiões do Brasil. Escolha o canal de sua preferência.</p>
+                
+                <div class="cc-list" style="display: flex; flex-direction: column; gap: 16px; align-items: center; width: 100%;">
+                    <a href="https://wa.me/5561981391006?text=Olá!%20Vi%20o%20site%20e%20gostaria%20de%20um%20orçamento." target="_blank" class="cc" style="width: 100%; max-width: 400px; justify-content: flex-start; text-align: left;">
+                        <div class="cci cci-g"><img src="assets/whatsapp.png" alt="Ícone do WhatsApp"></div>
+                        <div class="cct"><strong>WhatsApp</strong><span>(61) 98139-1006</span></div>
+                    </a>
+
+                    <a href="https://instagram.com/sandronnes_imagens" target="_blank" class="cc" style="width: 100%; max-width: 400px; justify-content: flex-start; text-align: left;">
+                        <div class="cci cci-o"><img src="assets/instagram.png" alt="Ícone do Instagram"></div>
+                        <div class="cct"><strong>Instagram</strong><span>@sandronnes_imagens</span></div>
+                    </a>
+
+                    <a href="https://facebook.com/sandronnes_imagens" target="_blank" class="cc" style="width: 100%; max-width: 400px; justify-content: flex-start; text-align: left;">
+                        <div class="cci cci-b"><img src="assets/facebook.png" alt="Ícone do Facebook"></div>
+                        <div class="cct"><strong>Facebook</strong><span>@sandronnes_imagens</span></div>
+                    </a>          
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- FOOTER SEMÂNTICO -->
 <footer>
-  <div class="ft-top">
-    <div>
-      <div class="ft-brand">Sandron<em>nes</em></div>
-      <div class="ft-tag">Tecnologia aérea para o agronegócio brasileiro</div>
+    <div class="ft-top">
+        <div>
+            <div class="ft-brand">Sandron<em>nes</em></div>
+            <p class="ft-tag">Tecnologia aérea para o agronegócio brasileiro</p>
+        </div>
+        <div class="ft-bot">
+            <p class="ft-copy">&copy; 2026 Sandronnes – Drones Agrícolas. Todos os direitos reservados.</p>
+        </div>
     </div>
-    <!--
-    <div class="ft-soc">
-      <a href="https://instagram.com/sandronnes_imagens" target="_blank" title="Instagram">
-        <img src="assets/instagram.png" alt="Instagram">
-      </a>
-      <a href="https://facebook.com/sandronnes_imagens" target="_blank" title="Facebook">
-        <img src="assets/facebook.png" alt="Facebook">
-      </a>
-      <a href="https://wa.me/5561981391006?text=Olá!%20Gostaria%20de%20mais%20informações%20sobre%20as%20soluções%20agrícolas." target="_blank" class="cc">
-        <img src="assets/whatsapp.png" alt="WhatsApp">
-      </a>
-    </div>
-    -->
-    
-  </div>
 </footer>
 
 </body>
