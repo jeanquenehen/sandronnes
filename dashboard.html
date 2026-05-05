@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sandronnes</title>
+    <!-- Importação do Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-color: #2ecc71;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: #000;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .container {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .welcome-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .btn-logout {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        h1 { color: var(--primary-color); margin-top: 0; }
+        
+        /* Seu componente Numbers adaptado para o rodapé */
+        .numbers-strip { background: #000; padding: 40px 0; border-top: 1px solid #333; margin-top: 50px; }
+        .numbers-inner { display: flex; justify-content: space-around; flex-wrap: wrap; }
+        .number-item { text-align: center; }
+        .number-val { font-size: 2rem; font-weight: bold; color: var(--primary-color); }
+        .number-label { font-size: 0.8rem; color: #888; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="font-size: 1.5rem; font-weight: bold;">SANDRONNES</div>
+        <button class="btn-logout" onclick="logout()">Sair</button>
+    </header>
+
+    <div class="container">
+        <div class="welcome-card">
+            <h1>Painel de Controle</h1>
+            <p>Olá, <span id="user-email">...</span></p>
+            <p>Você está autenticado no sistema de monitoramento.</p>
+        </div>
+    </div>
+
+    <!-- COMPONENTE NUMBERS -->
+    <section class="numbers-strip">
+        <div class="numbers-inner">
+            <div class="number-item"><div class="number-val">98%</div><div class="number-label">Precisão</div></div>
+            <div class="number-item"><div class="number-val">3×</div><div class="number-label">Velocidade</div></div>
+            <div class="number-item"><div class="number-val">↓40%</div><div class="number-label">Insumos</div></div>
+            <div class="number-item"><div class="number-val">100%</div><div class="number-label">Rastreável</div></div>
+        </div>
+    </section>
+
+    <script>
+        // CONFIGURAÇÃO DO SUPABASE
+        const SUPABASE_URL = 'https://db.pastordistrital.com.br';
+        const SUPABASE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc2NDgxMDEyMCwiZXhwIjo0OTIwNDgzNzIwLCJyb2xlIjoiYW5vbiJ9.CwEayiY4c8K8xpkRUFVuAVm_iBmLXB09LzaZp9L9zTc';
+
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            db: { schema: 'Sandronnes' }
+        });
+
+        // CHECAGEM DE SESSÃO
+        async function checkSession() {
+            const { data: { session }, error } = await _supabase.auth.getSession();
+
+            if (error || !session) {
+                // Se não houver sessão, volta para a página Manager
+                window.location.href = 'manager.html';
+            } else {
+                // Preenche o e-mail do usuário na tela
+                document.getElementById('user-email').innerText = session.user.email;
+            }
+        }
+
+        async function logout() {
+            await _supabase.auth.signOut();
+            window.location.href = 'manager.html';
+        }
+
+        // Executa a checagem ao carregar a página
+        checkSession();
+    </script>
+</body>
+</html>

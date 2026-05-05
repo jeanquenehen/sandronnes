@@ -114,7 +114,6 @@
 
     <script>
         // CONFIGURAÇÃO DO SUPABASE
-        // IMPORTANTE: Substitua pelas chaves do seu projeto (Settings > API)
         const SUPABASE_URL = 'https://db.pastordistrital.com.br';
         const SUPABASE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc2NDgxMDEyMCwiZXhwIjo0OTIwNDgzNzIwLCJyb2xlIjoiYW5vbiJ9.CwEayiY4c8K8xpkRUFVuAVm_iBmLXB09LzaZp9L9zTc';
 
@@ -141,18 +140,23 @@
 
                 if (error) throw error;
 
-                // Se o login for bem-sucedido, você pode redirecionar para uma página interna
-                // ou atualizar a tela para mostrar o formulário de cadastro de usuários.
-                alert('Bem-vindo, ' + data.user.email);
-                
-                // Exemplo de redirecionamento:
-                // window.location.href = 'dashboard.html';
+                // Se o login for bem-sucedido, redireciona para a dashboard
+                window.location.href = 'dashboard.html';
 
             } catch (error) {
                 console.error('Erro de autenticação:', error.message);
                 alert('Erro ao acessar: ' + error.message);
             }
         }
+
+        // Verificação automática: se o usuário já estiver logado, manda direto para a dashboard
+        async function verificarSessaoAtiva() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) {
+                window.location.href = 'dashboard.html';
+            }
+        }
+        verificarSessaoAtiva();
     </script>
 </body>
 </html>
