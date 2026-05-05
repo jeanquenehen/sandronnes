@@ -11,6 +11,7 @@
             --primary-color: #2ecc71;
             --dark-bg: #121212;
             --card-bg: #1e1e1e;
+            --input-bg: #2a2a2a;
         }
 
         body {
@@ -36,10 +37,11 @@
             margin: 0 auto;
         }
 
-        .welcome-card {
+        .welcome-card, .form-card {
             background: var(--card-bg);
             padding: 30px;
             border-radius: 12px;
+            margin-bottom: 20px;
             border-left: 5px solid var(--primary-color);
         }
 
@@ -53,9 +55,32 @@
             font-weight: bold;
         }
 
-        h1 { color: var(--primary-color); margin-top: 0; }
+        h1, h2 { color: var(--primary-color); margin-top: 0; }
+
+        /* Estilos do Formulário */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #888; font-size: 0.9rem; }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: var(--input-bg);
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: white;
+            box-sizing: border-box;
+        }
+        .btn-save {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
         
-        /* Seu componente Numbers adaptado para o rodapé */
         .numbers-strip { background: #000; padding: 40px 0; border-top: 1px solid #333; margin-top: 50px; }
         .numbers-inner { display: flex; justify-content: space-around; flex-wrap: wrap; }
         .number-item { text-align: center; }
@@ -74,11 +99,35 @@
         <div class="welcome-card">
             <h1>Painel de Controle</h1>
             <p>Olá, <span id="user-email">...</span></p>
-            <p>Você está autenticado no sistema de monitoramento.</p>
+        </div>
+
+        <!-- FORMULÁRIO DE CADASTRO DE USUÁRIO -->
+        <div class="form-card">
+            <h2>Cadastrar Novo Usuário</h2>
+            <div class="form-group">
+                <label>Nome Completo</label>
+                <input type="text" id="novo-nome" placeholder="Ex: João Silva">
+            </div>
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="novo-email" placeholder="usuario@sandronnes.com.br">
+            </div>
+            <div class="form-group">
+                <label>Senha Provisória</label>
+                <input type="password" id="novo-password" placeholder="Mínimo 6 caracteres">
+            </div>
+            <div class="form-group">
+                <label>Perfil de Acesso</label>
+                <select id="novo-perfil">
+                    <option value="operador">Operador</option>
+                    <option value="socio">Sócio</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <button class="btn-save" onclick="salvarUsuario()">CADASTRAR USUÁRIO</button>
         </div>
     </div>
 
-    <!-- COMPONENTE NUMBERS -->
     <section class="numbers-strip">
         <div class="numbers-inner">
             <div class="number-item"><div class="number-val">98%</div><div class="number-label">Precisão</div></div>
@@ -89,7 +138,6 @@
     </section>
 
     <script>
-        // CONFIGURAÇÃO DO SUPABASE
         const SUPABASE_URL = 'https://db.pastordistrital.com.br';
         const SUPABASE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc2NDgxMDEyMCwiZXhwIjo0OTIwNDgzNzIwLCJyb2xlIjoiYW5vbiJ9.CwEayiY4c8K8xpkRUFVuAVm_iBmLXB09LzaZp9L9zTc';
 
@@ -97,15 +145,11 @@
             db: { schema: 'Sandronnes' }
         });
 
-        // CHECAGEM DE SESSÃO
         async function checkSession() {
             const { data: { session }, error } = await _supabase.auth.getSession();
-
             if (error || !session) {
-                // Se não houver sessão, volta para a página Manager
                 window.location.href = 'manager.html';
             } else {
-                // Preenche o e-mail do usuário na tela
                 document.getElementById('user-email').innerText = session.user.email;
             }
         }
@@ -115,7 +159,51 @@
             window.location.href = 'manager.html';
         }
 
-        // Executa a checagem ao carregar a página
+        // FUNÇÃO PARA SALVAR NOVO USUÁRIO
+        async function salvarUsuario() {
+            const nome = document.getElementById('novo-nome').value;
+            const email = document.getElementById('novo-email').value;
+            const password = document.getElementById('novo-password').value;
+            const perfil = document.getElementById('novo-perfil').value;
+
+            if (!nome || !email || !password) {
+                alert("Por favor, preencha todos os campos.");
+                return;
+            }
+
+            try {
+                // 1. Cria o usuário no Auth
+                const { data: authData, error: authError } = await _supabase.auth.signUp({
+                    email,
+                    password
+                });
+
+                if (authError) throw authError;
+
+                // 2. Insere os dados adicionais na tabela do schema Sandronnes
+                const { error: dbError } = await _supabase
+                    .from('usuarios')
+                    .insert({
+                        id: authData.user.id,
+                        nome: nome,
+                        perfil: perfil
+                    });
+
+                if (dbError) throw dbError;
+
+                alert('Usuário ' + nome + ' cadastrado com sucesso!');
+                
+                // Limpa os campos
+                document.getElementById('novo-nome').value = '';
+                document.getElementById('novo-email').value = '';
+                document.getElementById('novo-password').value = '';
+
+            } catch (error) {
+                console.error('Erro:', error.message);
+                alert('Erro ao cadastrar: ' + error.message);
+            }
+        }
+
         checkSession();
     </script>
 </body>
