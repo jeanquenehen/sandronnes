@@ -368,6 +368,53 @@
         </div>
     </div>
 </footer>
+<script>
+    async function salvarUsuario() {
+        const nome = document.getElementById('nome').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const perfil = document.getElementById('perfil').value;
+        const fotoArquivo = document.getElementById('user-photo').files[0];
 
+        try {
+            // 1. Criar usuário no Auth do Supabase (Gera o ID)
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email,
+                password
+            });
+
+            if (authError) throw authError;
+
+            // 2. Upload da foto para o Storage (Opcional)
+            let fotoUrl = '';
+            if (fotoArquivo) {
+                const fileName = `public/${authData.user.id}.png`;
+                const { data: storageData } = await supabase.storage
+                    .from('avatars')
+                    .upload(fileName, fotoArquivo);
+                
+                fotoUrl = supabase.storage.from('avatars').getPublicUrl(fileName).data.publicUrl;
+            }
+
+            // 3. Salvar na tabela do schema Sandronnes
+            const { error: dbError } = await supabase
+                .withSchema('Sandronnes') // Direciona para o schema correto
+                .from('usuarios')
+                .insert({
+                    id: authData.user.id, // Vincula o ID do Auth à sua tabela
+                    nome: nome,
+                    perfil: perfil,
+                    foto_url: fotoUrl
+                });
+
+            if (dbError) throw dbError;
+
+            alert('Usuário cadastrado com sucesso!');
+        } catch (error) {
+            console.error('Erro ao salvar:', error.message);
+            alert('Erro ao salvar: ' + error.message);
+        }
+    }
+</script>
 </body>
 </html>
