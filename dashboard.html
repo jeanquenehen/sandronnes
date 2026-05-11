@@ -4,150 +4,298 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sandronnes</title>
-    <!-- Importação do Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary-color: #2ecc71;
-            --dark-bg: #121212;
-            --card-bg: #1e1e1e;
-            --input-bg: #2a2a2a;
+            --bg-body: #ffffff; 
+            --sidebar-bg: #e9ecef;
+            --card-bg: #631a1a;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border-radius: 24px;
         }
 
         body {
             font-family: 'Segoe UI', sans-serif;
-            background-color: var(--dark-bg);
-            color: white;
+            background-color: var(--bg-body);
             margin: 0;
-            padding: 0;
+            display: flex;
+            min-height: 100vh;
         }
 
-        header {
-            background: #000;
-            padding: 20px;
+        /* SIDEBAR FLUTUANTE */
+        aside {
+            width: 260px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            position: fixed;
+            /* Margem de 20px em volta para o efeito de card solto */
+            top: 20px;
+            bottom: 20px;
+            left: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            z-index: 100;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-left: 10px;
+        }
+
+        nav { flex: 1; }
+        nav ul { list-style: none; padding: 0; margin: 0; }
+        nav li {
+            padding: 14px 18px;
+            margin-bottom: 5px;
+            border-radius: 15px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        nav li.active {
+            background: #f0fff4;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        nav li:hover:not(.active) { background: #f8fafc; color: var(--text-main); }
+
+        /* CONTEÚDO PRINCIPAL COM ESPAÇAMENTO */
+        main {
+            /* Margem esquerda compensando a sidebar + margens */
+            margin-left: 300px; 
+            flex: 1;
+            padding: 20px 40px 40px 20px;
+            box-sizing: border-box;
+        }
+
+        /* HEADER COMO CARD */
+        .dashboard-header {
+            background: white;
+            padding: 15px 30px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
         }
 
-        .container {
-            padding: 40px;
-            max-width: 1200px;
-            margin: 0 auto;
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .welcome-card, .form-card {
-            background: var(--card-bg);
-            padding: 30px;
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: #eee;
             border-radius: 12px;
-            margin-bottom: 20px;
-            border-left: 5px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .btn-logout {
-            background: #e74c3c;
+        /* GRID DE CARDS ARREDONDADOS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .stat-card.green {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
         }
 
-        h1, h2 { color: var(--primary-color); margin-top: 0; }
+        .stat-card h3 { font-size: 0.85rem; margin: 0; opacity: 0.8; font-weight: 500; }
+        .stat-card .value { font-size: 2rem; font-weight: bold; margin: 10px 0; }
 
-        /* Estilos do Formulário */
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #888; font-size: 0.9rem; }
+        /* SEÇÃO DE FORMULÁRIO */
+        .content-section {
+            background: white;
+            padding: 35px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-weight: 600; font-size: 0.85rem; color: var(--text-main); }
+        
         input, select {
-            width: 100%;
-            padding: 12px;
-            background: var(--input-bg);
-            border: 1px solid #333;
-            border-radius: 6px;
-            color: white;
-            box-sizing: border-box;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #f8fafc;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border 0.3s;
         }
+
+        input:focus { border-color: var(--primary-color); }
+
         .btn-save {
+            grid-column: span 2;
             background: var(--primary-color);
             color: white;
             border: none;
-            padding: 15px;
-            width: 100%;
-            border-radius: 6px;
+            padding: 16px;
+            border-radius: 14px;
             font-weight: bold;
+            font-size: 1rem;
             cursor: pointer;
             margin-top: 10px;
+            transition: transform 0.2s;
         }
-        
-        .numbers-strip { background: #000; padding: 40px 0; border-top: 1px solid #333; margin-top: 50px; }
-        .numbers-inner { display: flex; justify-content: space-around; flex-wrap: wrap; }
-        .number-item { text-align: center; }
-        .number-val { font-size: 2rem; font-weight: bold; color: var(--primary-color); }
-        .number-label { font-size: 0.8rem; color: #888; }
+
+        .btn-save:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        .btn-logout {
+            margin-top: auto;
+            background: #fff5f5;
+            color: #e74c3c;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <div style="font-size: 1.5rem; font-weight: bold;">SANDRONNES</div>
-        <button class="btn-logout" onclick="logout()">Sair</button>
-    </header>
+    <aside>
+        <div class="logo">
+            <i class="fas fa-circle-nodes"></i> Sandronnes
+        </div>
+        <nav>
+            <ul>
+                <li class="active"><i class="fas fa-chart-pie"></i> Dashboard</li>
+                <li><i class="fas fa-users-gear"></i> Usuários</li>
+                <li><i class="fas fa-box"></i> Insumos</li>
+                <li><i class="fas fa-file-invoice-dollar"></i> Relatórios</li>
+            </ul>
+        </nav>
+        <button class="btn-logout" onclick="logout()">
+            <i class="fas fa-power-off"></i> Sair
+        </button>
+    </aside>
 
-    <div class="container">
-        <div class="welcome-card">
-            <h1>Painel de Controle</h1>
-            <p>Olá, <span id="user-email">...</span></p>
+    <main>
+        <div class="dashboard-header">
+            <div>
+                <h2 style="margin:0; font-size: 1.4rem;">Visão Geral</h2>
+            </div>
+            <div class="user-profile">
+                <div style="text-align: right">
+                    <div id="user-email" style="font-weight: 600; font-size: 0.85rem;">carregando...</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Administrador</div>
+                </div>
+                <div class="avatar">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+            </div>
         </div>
 
-        <!-- FORMULÁRIO DE CADASTRO DE USUÁRIO -->
-        <div class="form-card">
-            <h2>Cadastrar Novo Usuário</h2>
-            <div class="form-group">
-                <label>Nome Completo</label>
-                <input type="text" id="novo-nome" placeholder="Ex: João Silva">
+        <div class="stats-grid">
+            <div class="stat-card green">
+                <h3>Produtividade</h3>
+                <div class="value">98.5%</div>
+                <div style="font-size: 0.7rem;">+2.1% este mês</div>
             </div>
-            <div class="form-group">
-                <label>E-mail</label>
-                <input type="email" id="novo-email" placeholder="usuario@sandronnes.com.br">
+            <div class="stat-card">
+                <h3>Usuários Ativos</h3>
+                <div class="value">12</div>
+                <div style="font-size: 0.7rem; color: var(--primary-color);">Sistema online</div>
             </div>
-            <div class="form-group">
-                <label>Senha Provisória</label>
-                <input type="password" id="novo-password" placeholder="Mínimo 6 caracteres">
+            <div class="stat-card">
+                <h3>Economia</h3>
+                <div class="value">14%</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted);">Redução de custos</div>
             </div>
-            <div class="form-group">
-                <label>Perfil de Acesso</label>
-                <select id="novo-perfil">
-                    <option value="operador">Operador</option>
-                    <option value="socio">Sócio</option>
-                    <option value="admin">Admin</option>
-                </select>
+            <div class="stat-card">
+                <h3>Alertas</h3>
+                <div class="value">0</div>
+                <div style="font-size: 0.7rem; color: #e74c3c;">Nenhum erro</div>
             </div>
-            <button class="btn-save" onclick="salvarUsuario()">CADASTRAR USUÁRIO</button>
         </div>
-    </div>
 
-    <section class="numbers-strip">
-        <div class="numbers-inner">
-            <div class="number-item"><div class="number-val">98%</div><div class="number-label">Precisão</div></div>
-            <div class="number-item"><div class="number-val">3×</div><div class="number-label">Velocidade</div></div>
-            <div class="number-item"><div class="number-val">↓40%</div><div class="number-label">Insumos</div></div>
-            <div class="number-item"><div class="number-val">100%</div><div class="number-label">Rastreável</div></div>
+        <div class="content-section">
+            <h3 style="margin-top:0">Novo Cadastro</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px;">Preencha os dados abaixo para adicionar um colaborador ao sistema.</p>
+            
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="novo-nome" placeholder="Digite o nome">
+                </div>
+                <div class="input-group">
+                    <label>E-mail Corporativo</label>
+                    <input type="email" id="novo-email" placeholder="email@sandronnes.com.br">
+                </div>
+                <div class="input-group">
+                    <label>Senha Provisória</label>
+                    <input type="password" id="novo-password" placeholder="******">
+                </div>
+                <div class="input-group">
+                    <label>Perfil de Acesso</label>
+                    <select id="novo-perfil">
+                        <option value="operador">Operador</option>
+                        <option value="socio">Sócio</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <button class="btn-save" onclick="salvarUsuario()">CADASTRAR NO SISTEMA</button>
+            </div>
         </div>
-    </section>
+    </main>
 
     <script>
         const SUPABASE_URL = 'https://db.pastordistrital.com.br';
-        const SUPABASE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc2NDgxMDEyMCwiZXhwIjo0OTIwNDgzNzIwLCJyb2xlIjoiYW5vbiJ9.CwEayiY4c8K8xpkRUFVuAVm_iBmLXB09LzaZp9L9zTc';
+        const SUPABASE_KEY = 'SUA_KEY_AQUI'; // Coloque sua anon key aqui
 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
             db: { schema: 'Sandronnes' }
         });
 
         async function checkSession() {
-            const { data: { session }, error } = await _supabase.auth.getSession();
-            if (error || !session) {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) {
                 window.location.href = 'manager.html';
             } else {
                 document.getElementById('user-email').innerText = session.user.email;
@@ -159,7 +307,6 @@
             window.location.href = 'manager.html';
         }
 
-        // FUNÇÃO PARA SALVAR NOVO USUÁRIO
         async function salvarUsuario() {
             const nome = document.getElementById('novo-nome').value;
             const email = document.getElementById('novo-email').value;
@@ -167,12 +314,11 @@
             const perfil = document.getElementById('novo-perfil').value;
 
             if (!nome || !email || !password) {
-                alert("Por favor, preencha todos os campos.");
+                alert("Preencha todos os campos!");
                 return;
             }
 
             try {
-                // 1. Cria o usuário no Auth
                 const { data: authData, error: authError } = await _supabase.auth.signUp({
                     email,
                     password
@@ -180,7 +326,6 @@
 
                 if (authError) throw authError;
 
-                // 2. Insere os dados adicionais na tabela do schema Sandronnes
                 const { error: dbError } = await _supabase
                     .from('usuarios')
                     .insert({
@@ -191,16 +336,11 @@
 
                 if (dbError) throw dbError;
 
-                alert('Usuário ' + nome + ' cadastrado com sucesso!');
-                
-                // Limpa os campos
-                document.getElementById('novo-nome').value = '';
-                document.getElementById('novo-email').value = '';
-                document.getElementById('novo-password').value = '';
+                alert('Usuário cadastrado com sucesso!');
+                location.reload();
 
-            } catch (error) {
-                console.error('Erro:', error.message);
-                alert('Erro ao cadastrar: ' + error.message);
+            } catch (err) {
+                alert('Erro: ' + err.message);
             }
         }
 
