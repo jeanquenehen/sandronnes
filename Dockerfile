@@ -1,22 +1,19 @@
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
-# Copia os arquivos de mapeamento de dependências
-COPY package*.json ./
-
-# Instala apenas as dependências de produção necessárias
-RUN npm install --only=production
-
-# Copia absolutamente todos os arquivos do seu projeto para dentro do container
-# Isso inclui a pasta private/, o manager.html, o server.js, etc.
+# Copia todos os arquivos do repositório primeiro
 COPY . .
 
-# Informa ao Docker que a aplicação escuta na porta 3000
+# Garante a instalação manual das dependências essenciais para o servidor rodar
+RUN npm init -y && \
+    npm install express @supabase/supabase-js cookie-parser dotenv
+
+# Expõe a porta correta
 EXPOSE 3000
 
-# Define a variável de ambiente para otimizar o Node em produção
+# Define o ambiente de produção
 ENV NODE_ENV=production
 
-# Comando que o Coolify vai executar para ligar o seu servidor Express real
+# Comando de inicialização
 CMD ["node", "server.js"]
