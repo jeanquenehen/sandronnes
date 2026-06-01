@@ -21,7 +21,7 @@
   "homepage": "https://github.com/jeanquenehen/sandronnes#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
-    "cookie-parser": "^1.4.6",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.5",
     "express": "^4.19.2"
   }

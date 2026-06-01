@@ -108,7 +108,6 @@
             }
 
             try {
-                // Envia as credenciais de forma segura para o servidor Node.js local
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
@@ -120,10 +119,8 @@
                 const result = await response.json();
 
                 if (response.ok && result.success) {
-                    // O cookie seguro foi injetado pelo Node, agora redirecionamos para a rota protegida
                     window.location.href = result.redirect;
                 } else {
-                    // Trata mensagens de erro retornadas pelo servidor Express
                     alert(result.message || 'Erro ao tentar acessar. Verifique suas credenciais.');
                 }
 
@@ -133,24 +130,22 @@
             }
         }
 
-        // Tenta checar de forma silenciosa se o usuário já possui sessão ao carregar a página
         async function verificarSessaoAtiva() {
-            try {
-                // Ao tentar acessar a rota do sistema, se o cookie já for válido,
-                // o servidor aceitará e o navegador mudará de página automaticamente.
-                const resposta = await fetch('/sistema', { method: 'GET', redirect: 'follow' });
-                if (resposta.redirected) {
-                    // Se o servidor redirecionar de volta para o manager.html, significa que não está logado
-                    if (!resposta.url.includes('manager.html')) {
-                        window.location.href = resposta.url;
+            setTimeout(async () => {
+                try {
+                    const resposta = await fetch('/api/user', { method: 'GET' });
+                    const result = await resposta.json();
+                    
+                    if (resposta.ok && result.authenticated) {
+                        window.location.href = '/sistema';
                     }
+                } catch (e) {
+                    console.log('Nenhuma sessão anterior ativa.');
                 }
-            } catch (e) {
-                console.log('Nenhuma sessão anterior ativa ativa.');
-            }
+            }, 100);
         }
         
-        // Removemos a verificação pesada do cliente, delegando a responsabilidade de proteção ao servidor Express.
+        verificarSessaoAtiva();
     </script>
 </body>
 </html>

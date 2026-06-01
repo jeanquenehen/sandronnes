@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sandronnes</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -33,7 +32,6 @@
             flex-direction: column;
             padding: 30px 20px;
             position: fixed;
-            /* Margem de 20px em volta para o efeito de card solto */
             top: 20px;
             bottom: 20px;
             left: 20px;
@@ -76,7 +74,6 @@
 
         /* CONTEÚDO PRINCIPAL COM ESPAÇAMENTO */
         main {
-            /* Margem esquerda compensando a sidebar + margens */
             margin-left: 300px; 
             flex: 1;
             padding: 20px 40px 40px 20px;
@@ -286,27 +283,39 @@
     </main>
 
     <script>
-        const SUPABASE_URL = 'https://db.pastordistrital.com.br';
-        const SUPABASE_KEY = 'SUA_KEY_AQUI'; // Coloque sua anon key aqui
-
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            db: { schema: 'Sandronnes' }
-        });
-
+        // Lógica segura: o cliente pergunta ao Node quem está logado baseando-se no cookie ativo
         async function checkSession() {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) {
-                window.location.href = 'manager.html';
-            } else {
-                document.getElementById('user-email').innerText = session.user.email;
+            setTimeout(async () => {
+                try {
+                    const response = await fetch('/api/user', { method: 'GET' });
+                    const result = await response.json();
+
+                    if (response.ok && result.authenticated) {
+                        document.getElementById('user-email').innerText = result.user.email;
+                    } else {
+                        window.location.href = '/manager.html';
+                    }
+                } catch (error) {
+                    console.error('Erro ao verificar sessão:', error);
+                    window.location.href = '/manager.html';
+                }
+            }, 100);
+        }
+
+        // Faz o logout limpando o cookie no servidor Express de forma segura
+        async function logout() {
+            try {
+                const response = await fetch('/api/logout', { method: 'POST' });
+                if (response.ok) {
+                    window.location.href = '/manager.html';
+                }
+            } catch (error) {
+                console.error('Erro ao deslogar:', error);
+                window.location.href = '/manager.html';
             }
         }
 
-        async function logout() {
-            await _supabase.auth.signOut();
-            window.location.href = 'manager.html';
-        }
-
+        // Dispara o cadastro chamando a rota da API segura do seu backend
         async function salvarUsuario() {
             const nome = document.getElementById('novo-nome').value;
             const email = document.getElementById('novo-email').value;
@@ -319,31 +328,27 @@
             }
 
             try {
-                const { data: authData, error: authError } = await _supabase.auth.signUp({
-                    email,
-                    password
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, password, perfil })
                 });
 
-                if (authError) throw authError;
+                const result = await response.json();
 
-                const { error: dbError } = await _supabase
-                    .from('usuarios')
-                    .insert({
-                        id: authData.user.id,
-                        nome: nome,
-                        perfil: perfil
-                    });
-
-                if (dbError) throw dbError;
-
-                alert('Usuário cadastrado com sucesso!');
-                location.reload();
-
+                if (response.ok && result.success) {
+                    alert('Usuário cadastrado com sucesso!');
+                    location.reload();
+                } else {
+                    alert('Erro: ' + (result.message || 'Falha ao processar cadastro'));
+                }
             } catch (err) {
-                alert('Erro: ' + err.message);
+                console.error(err);
+                alert('Erro de comunicação com o servidor.');
             }
         }
 
+        // Executa a checagem ao carregar a tela
         checkSession();
     </script>
 </body>
