@@ -35,7 +35,7 @@ app.post('/api/login', async (req, res) => {
 
         res.cookie('sb-access-token', data.session.access_token, {
             httpOnly: true,
-            secure: false, 
+            secure: true, 
             maxAge: data.session.expires_in * 1000,
             sameSite: 'lax',
             path: '/' 

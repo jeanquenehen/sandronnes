@@ -1,24 +1,22 @@
-FROM nginx:alpine
+FROM node:20-alpine
 
-# Remove configurações e arquivos padrão para evitar conflitos
-RUN rm -rf /usr/share/nginx/html/* && rm /etc/nginx/conf.d/default.conf
+WORKDIR /app
 
-# Criamos uma configuração interna para garantir o roteamento correto
-RUN echo 'server { \
-    listen 80; \
-    location / { \
-        root /usr/share/nginx/html; \
-        index index.html; \
-        try_files $uri $uri/ /index.html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Copia os arquivos de mapeamento de dependências
+COPY package*.json ./
 
-# Copia os arquivos do seu repositório
-COPY . /usr/share/nginx/html
+# Instala apenas as dependências de produção necessárias
+RUN npm install --only=production
 
-# Ajusta permissões para que o Nginx possa ler os arquivos
-RUN chmod -R 755 /usr/share/nginx/html && \
-    chown -R nginx:nginx /usr/share/nginx/html
+# Copia absolutamente todos os arquivos do seu projeto para dentro do container
+# Isso inclui a pasta private/, o manager.html, o server.js, etc.
+COPY . .
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Informa ao Docker que a aplicação escuta na porta 3000
+EXPOSE 3000
+
+# Define a variável de ambiente para otimizar o Node em produção
+ENV NODE_ENV=production
+
+# Comando que o Coolify vai executar para ligar o seu servidor Express real
+CMD ["node", "server.js"]
