@@ -177,7 +177,7 @@ tbody td{padding:13px 18px;font-size:.88rem;}
   <!-- DASHBOARD -->
   <div class="section active" id="sec-dashboard">
     <div class="kpi-grid">
-      <div class="kpi accent"><h4>Faturamento do mês</h4><div class="val" id="kpi-fat">R$ 0</div><div class="sub">Pagamentos recebidos no mês</div></div>
+      <div class="kpi accent"><h4>Resultado do mês</h4><div class="val" id="kpi-fat">R$ 0</div><div class="sub">Recebido − Despesas do mês</div></div>
       <div class="kpi"><h4>Trabalhos ativos</h4><div class="val" id="kpi-ativos">0</div><div class="sub">Em andamento</div></div>
       <div class="kpi"><h4>Saldo a receber</h4><div class="val" id="kpi-saldo">R$ 0</div><div class="sub">Parcelas em aberto</div></div>
       <div class="kpi"><h4>Despesas do mês</h4><div class="val" id="kpi-desp">R$ 0</div><div class="sub">Operacionais + gerais</div></div>
@@ -322,7 +322,10 @@ tbody td{padding:13px 18px;font-size:.88rem;}
   <!-- RELATÓRIOS -->
   <div class="section" id="sec-relatorios">
     <div class="kpi-grid" style="margin-bottom:22px">
-      <div class="kpi">
+      <div class="kpi accent"><h4>Resultado líquido</h4><div class="val" id="rel-liquido">R$ 0</div><div class="sub">Receita − Despesas</div></div>
+      <div class="kpi"><h4>Receita bruta</h4><div class="val" id="rel-receita">R$ 0</div><div class="sub">No período</div></div>
+      <div class="kpi"><h4>Total despesas</h4><div class="val" id="rel-despesas">R$ 0</div><div class="sub">No período</div></div>
+        <div class="kpi">
         <h4>Filtrar período</h4>
         <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
           <input type="month" id="rel-inicio" style="padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:.85rem;">
@@ -330,9 +333,6 @@ tbody td{padding:13px 18px;font-size:.88rem;}
           <button class="btn-primary" style="justify-content:center;" onclick="gerarRelatorio()"><i class="fas fa-filter"></i> Gerar</button>
         </div>
       </div>
-      <div class="kpi"><h4>Receita bruta</h4><div class="val" id="rel-receita">R$ 0</div><div class="sub">No período</div></div>
-      <div class="kpi"><h4>Total despesas</h4><div class="val" id="rel-despesas">R$ 0</div><div class="sub">No período</div></div>
-      <div class="kpi accent"><h4>Resultado líquido</h4><div class="val" id="rel-liquido">R$ 0</div><div class="sub">Receita − Despesas</div></div>
     </div>
     <div class="charts-grid">
       <div class="chart-card"><h4>Receita vs Despesas no período</h4><canvas id="chart-rel-recdesp" height="200"></canvas></div>
@@ -585,12 +585,18 @@ function loadDashboard(){
   const now=new Date(),mes=now.getMonth(),ano=now.getFullYear();
   const doMes=arr=>arr.filter(r=>{const d=new Date((r.data_execucao||r.data||r.data_vencimento||r.data_pagamento||'')+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===ano;});
   const trabMes=doMes(DB.trabalhos);
-  // KPI faturamento = pagamentos com status Pago recebidos no mês
+  // KPI faturamento = pagamentos Pago no mês − despesas do mês (trabalho + gerais)
   const fatMes=DB.pagamentos.filter(p=>p.status==='Pago'&&p.data_pagamento&&(()=>{const d=new Date(p.data_pagamento+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===ano;})()).reduce((s,p)=>s+(+p.valor||0),0);
-  document.getElementById('kpi-fat').textContent=brl(fatMes);
+  const despMes=[...doMes(DB.despesas),...doMes(DB.despesas_gerais)].reduce((s,d)=>s+(+d.valor||0),0);
+  const resultadoMes=fatMes-despMes;
+  document.getElementById('kpi-fat').textContent=brl(resultadoMes);
+  document.getElementById('kpi-fat').style.opacity='1';
+  // Cor: verde se positivo, vermelho se negativo
+  const kpiFatEl=document.getElementById('kpi-fat').closest('.kpi');
+  if(kpiFatEl){kpiFatEl.style.background=resultadoMes<0?'linear-gradient(135deg,#e74c3c,#c0392b)':'linear-gradient(135deg,#2ecc71,#27ae60)';}
   document.getElementById('kpi-ativos').textContent=DB.trabalhos.filter(t=>t.status_trabalho==='Em andamento').length;
   document.getElementById('kpi-saldo').textContent=brl(DB.pagamentos.filter(p=>p.status==='A receber').reduce((s,p)=>s+(+p.valor||0),0));
-  document.getElementById('kpi-desp').textContent=brl([...doMes(DB.despesas),...doMes(DB.despesas_gerais)].reduce((s,d)=>s+(+d.valor||0),0));
+  document.getElementById('kpi-desp').textContent=brl(despMes);
   document.getElementById('kpi-ha').textContent=trabMes.reduce((s,t)=>s+(+t.dimensao_ha||0),0).toFixed(1)+' ha';
   document.getElementById('kpi-op').textContent=brl(trabMes.reduce((s,t)=>s+(+t.ganho_operador||0),0));
   document.getElementById('kpi-rep').textContent=brl(trabMes.reduce((s,t)=>s+(+t.ganho_representante||0),0));
