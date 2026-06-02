@@ -140,6 +140,22 @@ tbody td{padding:13px 18px;font-size:.88rem;}
   .form-grid{grid-template-columns:1fr;} .form-grid .full{grid-column:span 1;}
   thead th:nth-child(n+4),tbody td:nth-child(n+4){display:none;}
 }
+/* ── EXPANDABLE DETAIL ROW ── */
+.row-toggle{cursor:pointer;transition:background .15s;}
+.row-toggle:hover{background:var(--row-hover);}
+.row-toggle td:first-child::before{content:'▸ ';color:var(--muted);font-size:.7rem;}
+.row-toggle.open td:first-child::before{content:'▾ ';}
+.detail-row{display:none;}
+.detail-row.open{display:table-row;}
+.detail-row td{padding:0 18px 16px;background:var(--input-bg);}
+.detail-inner{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.detail-block{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);}
+.detail-block h5{font-size:.75rem;text-transform:uppercase;color:var(--muted);margin-bottom:10px;letter-spacing:.04em;}
+.detail-block table{width:100%;}
+.detail-block th{font-size:.68rem;padding:4px 8px;color:var(--muted);text-align:left;border-bottom:1px solid var(--border);}
+.detail-block td{font-size:.8rem;padding:5px 8px;}
+.detail-empty{font-size:.8rem;color:var(--muted);font-style:italic;}
+@media(max-width:768px){.detail-inner{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -207,7 +223,7 @@ tbody td{padding:13px 18px;font-size:.88rem;}
     <div class="table-card">
       <div class="table-head"><h3>Todos os trabalhos</h3><span class="badge" id="badge-trabalhos">0</span></div>
       <div style="overflow-x:auto"><table>
-        <thead><tr><th>Cliente</th><th>Serviço</th><th>Operador</th><th>Dimensão</th><th>Valor</th><th>Despesas</th><th>Recebido</th><th>Sandro</th><th>Rafael</th><th>Execução</th><th>Situação</th><th>Pgto</th><th style="text-align:center">Ações</th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Serviço</th><th>Dimensão</th><th>Valor</th><th>Despesas</th><th>Saldo</th><th>Recebido</th><th>Sandro</th><th>Rafael</th><th>Execução</th><th>Situação</th><th>Pgto</th><th style="text-align:center">Ações</th></tr></thead>
         <tbody id="tbody-trabalhos"><tr><td colspan="13"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando...</p></div></td></tr></tbody>
       </table></div>
     </div>
@@ -533,35 +549,86 @@ function renderClientes(){
   document.getElementById('tbody-clientes').innerHTML=!d.length?emptyRow(6):d.map(c=>`<tr><td><strong>${esc(c.nome)}</strong></td><td class="td-muted">${esc(c.endereco||'—')}</td><td>${c.carteira?`<span class="tag tag-gray">${esc(c.carteira)}</span>`:'—'}</td><td class="td-muted">${c.latitude&&c.longitude?`${(+c.latitude).toFixed(4)}, ${(+c.longitude).toFixed(4)}`:'—'}</td><td class="td-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.descricao||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('cliente','${c.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('cliente','${c.id}','${esc(c.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function statusTrabTag(s){const m={'Aguardando':'tag-orange','Em andamento':'tag-blue','Concluído':'tag-green'};return`<span class="tag ${m[s]||'tag-gray'}" style="font-size:.68rem">${esc(s||'—')}</span>`;}
+
 function renderTrabalhos(){
-  const d=rows('trabalhos');document.getElementById('badge-trabalhos').textContent=d.length+' reg.';
-  document.getElementById('tbody-trabalhos').innerHTML=!d.length?emptyRow(13):d.map(t=>{
-    const cli=DB.clientes.find(c=>c.id===t.cliente_id),op=DB.operadores.find(o=>o.id===t.operador_id);
-    // Soma despesas vinculadas a este trabalho
-    const totalDesp=DB.despesas.filter(d=>d.trabalho_id===t.id).reduce((s,d)=>s+(+d.valor||0),0);
-    // Soma pagamentos recebidos (Pago) deste trabalho
+  const statusOrder={'Em andamento':0,'Aguardando':1,'Concluído':2};
+  const d=[...rows('trabalhos')].sort((a,b)=>{
+    const sa=statusOrder[a.status_trabalho]??9, sb=statusOrder[b.status_trabalho]??9;
+    return sa-sb;
+  });
+  document.getElementById('badge-trabalhos').textContent=d.length+' reg.';
+  if(!d.length){document.getElementById('tbody-trabalhos').innerHTML=emptyRow(13);return;}
+
+  document.getElementById('tbody-trabalhos').innerHTML=d.map(t=>{
+    const cli=DB.clientes.find(c=>c.id===t.cliente_id);
+    const totalDesp=DB.despesas.filter(dd=>dd.trabalho_id===t.id).reduce((s,dd)=>s+(+dd.valor||0),0);
     const totalRecebido=DB.pagamentos.filter(p=>p.trabalho_id===t.id).reduce((s,p)=>s+(+p.valor||0),0);
-    const corS=t.sandro_recebe<0?'color:var(--danger)':'';
-    const corR=t.rafael_recebe<0?'color:var(--danger)':'';
-    return`<tr>
+    const saldo=(+t.valor_total||0)-totalDesp;
+
+    // Calcula divisão sócios no frontend
+    const valorTotal=+t.valor_total||0;
+    const ganhoOp=+t.ganho_operador||0;
+    const ganhoRep=+t.ganho_representante||0;
+    const liquido=valorTotal-ganhoOp-ganhoRep-totalDesp;
+    const carteira=(cli?.carteira||'').toLowerCase();
+    const percS=carteira==='sandro'?0.60:0.50;
+    const percR=carteira==='sandro'?0.40:0.50;
+    const sandroR=parseFloat((liquido*percS).toFixed(2));
+    const rafaelR=parseFloat((liquido*percR).toFixed(2));
+
+    const corS=sandroR<0?'color:var(--danger)':'';
+    const corR=rafaelR<0?'color:var(--danger)':'';
+    const corSaldo=saldo<0?'color:var(--danger)':'color:var(--primary)';
+
+    // Pagamentos deste trabalho
+    const pags=DB.pagamentos.filter(p=>p.trabalho_id===t.id);
+    const desps=DB.despesas.filter(dd=>dd.trabalho_id===t.id);
+
+    const pagsHtml=pags.length
+      ?`<table><thead><tr><th>Data</th><th>Valor</th><th>Descrição</th></tr></thead><tbody>${pags.map(p=>`<tr><td>${fmtDate(p.data_pagamento)}</td><td>${brl(p.valor)}</td><td>${esc(p.descricao||'—')}</td></tr>`).join('')}</tbody></table>`
+      :'<div class="detail-empty">Nenhum pagamento registrado.</div>';
+
+    const despsHtml=desps.length
+      ?`<table><thead><tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Descrição</th></tr></thead><tbody>${desps.map(dd=>`<tr><td>${fmtDate(dd.data)}</td><td>${esc(dd.tipo||'—')}</td><td>${brl(dd.valor)}</td><td>${esc(dd.descricao||'—')}</td></tr>`).join('')}</tbody></table>`
+      :'<div class="detail-empty">Nenhuma despesa registrada.</div>';
+
+    return`<tr class="row-toggle" onclick="toggleDetail('${t.id}',this)">
       <td><strong>${esc(cli?.nome||'—')}</strong></td>
       <td>${esc(t.servico||'—')}</td>
-      <td class="td-muted">${esc(op?.nome||'—')}</td>
       <td class="td-muted">${t.dimensao_ha?t.dimensao_ha+' ha':'—'}</td>
       <td>${brl(t.valor_total)}</td>
       <td style="color:var(--danger);font-size:.82rem">${totalDesp>0?'− '+brl(totalDesp):'—'}</td>
+      <td style="font-weight:600;font-size:.82rem;${corSaldo}">${brl(saldo)}</td>
       <td style="color:var(--primary);font-size:.82rem">${totalRecebido>0?brl(totalRecebido):'—'}</td>
-      <td style="font-weight:600;font-size:.82rem;${corS}">${t.sandro_recebe!=null?brl(t.sandro_recebe):'—'}</td>
-      <td style="font-weight:600;font-size:.82rem;${corR}">${t.rafael_recebe!=null?brl(t.rafael_recebe):'—'}</td>
+      <td style="font-weight:600;font-size:.82rem;${corS}">${brl(sandroR)}</td>
+      <td style="font-weight:600;font-size:.82rem;${corR}">${brl(rafaelR)}</td>
       <td class="td-muted">${fmtDate(t.data_execucao)}</td>
       <td>${statusTrabTag(t.status_trabalho)}</td>
       <td>${statusTag(t.status_pagamento)}</td>
-      <td><div class="action-btns">
+      <td><div class="action-btns" onclick="event.stopPropagation()">
         <button class="btn-icon btn-edit" onclick="openEdit('trabalho','${t.id}')"><i class="fas fa-pen"></i></button>
         <button class="btn-icon btn-del" onclick="openDel('trabalho','${t.id}','serviço ${esc(t.servico||'')}')"><i class="fas fa-trash"></i></button>
       </div></td>
+    </tr>
+    <tr class="detail-row" id="detail-${t.id}">
+      <td colspan="13">
+        <div class="detail-inner">
+          <div class="detail-block"><h5><i class="fas fa-file-invoice-dollar"></i> Pagamentos</h5>${pagsHtml}</div>
+          <div class="detail-block"><h5><i class="fas fa-receipt"></i> Despesas</h5>${despsHtml}</div>
+        </div>
+      </td>
     </tr>`;
   }).join('');
+}
+
+function toggleDetail(id, rowEl){
+  const detail=document.getElementById('detail-'+id);
+  if(!detail)return;
+  const isOpen=detail.classList.contains('open');
+  // Fecha todos os outros
+  document.querySelectorAll('.detail-row.open').forEach(r=>r.classList.remove('open'));
+  document.querySelectorAll('.row-toggle.open').forEach(r=>r.classList.remove('open'));
+  if(!isOpen){detail.classList.add('open');rowEl.classList.add('open');}
 }
 function renderPagamentos(){
   const d=rows('pagamentos');document.getElementById('badge-pagamentos').textContent=d.length+' reg.';
