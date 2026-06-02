@@ -222,8 +222,8 @@ tbody td{padding:13px 18px;font-size:.88rem;}
     <div class="table-card">
       <div class="table-head"><h3>Pagamentos recebidos</h3><span class="badge" id="badge-pagamentos">0</span></div>
       <div style="overflow-x:auto"><table>
-        <thead><tr><th>Trabalho / Cliente</th><th>Valor</th><th>Vencimento</th><th>Pagamento</th><th>Status</th><th>Descrição</th><th style="text-align:center">Ações</th></tr></thead>
-        <tbody id="tbody-pagamentos"><tr><td colspan="7"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando...</p></div></td></tr></tbody>
+        <thead><tr><th>Trabalho / Cliente</th><th>Valor</th><th>Vencimento</th><th>Data pagamento</th><th>Descrição</th><th style="text-align:center">Ações</th></tr></thead>
+        <tbody id="tbody-pagamentos"><tr><td colspan="6"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando...</p></div></td></tr></tbody>
       </table></div>
     </div>
   </div>
@@ -366,12 +366,12 @@ tbody td{padding:13px 18px;font-size:.88rem;}
       <div class="fg"><label>Operador</label><select id="t-operador"><option value="">Selecione...</option></select></div>
       <div class="fg"><label>Representante</label><select id="t-representante"><option value="">(nenhum)</option></select></div>
       <div class="fg"><label>Dimensão (ha)</label><input type="number" id="t-dimensao" placeholder="0" min="0" step="any" oninput="calcGanhos()"></div>
-      <div class="fg"><label>Valor por ha (R$)</label><input type="text" id="t-valor-ha" placeholder="R$ 0,00" oninput="maskBRL(this);calcGanhos()"></div>
+      <div class="fg"><label>Valor por ha (R$)</label><input type="number" id="t-valor-ha" placeholder="0.00" min="0" step="any" oninput="calcGanhos()"></div>
       <div class="fg"><label>Data do pedido</label><input type="date" id="t-data-pedido"></div>
       <div class="fg"><label>Data de execução</label><input type="date" id="t-data-exec"></div>
-      <div class="fg"><label>Valor total (R$)</label><input type="text" id="t-valor" readonly style="opacity:.7" placeholder="Calculado automaticamente"></div>
-      <div class="fg"><label>Ganho operador (R$)</label><input type="text" id="t-ganho-op" readonly style="opacity:.7"><span class="calc-preview" id="prev-op"></span></div>
-      <div class="fg"><label>Ganho representante (R$)</label><input type="text" id="t-ganho-rep" readonly style="opacity:.7"><span class="calc-preview" id="prev-rep"></span></div>
+      <div class="fg"><label>Valor total (R$)</label><input type="number" id="t-valor" readonly style="opacity:.7" placeholder="Calculado automaticamente"></div>
+      <div class="fg"><label>Ganho operador (R$)</label><input type="number" id="t-ganho-op" readonly style="opacity:.7"><span class="calc-preview" id="prev-op"></span></div>
+      <div class="fg"><label>Ganho representante (R$)</label><input type="number" id="t-ganho-rep" readonly style="opacity:.7"><span class="calc-preview" id="prev-rep"></span></div>
       <div class="fg"><label>Status pagamento</label><select id="t-status"><option value="A receber">A receber</option><option value="Parcelado">Parcelado</option><option value="Pago">Pago</option></select></div>
       <div class="fg"><label>Situação do trabalho</label><select id="t-status-trab"><option value="Aguardando">Aguardando</option><option value="Em andamento">Em andamento</option><option value="Concluído">Concluído</option></select></div>
     </div></div>
@@ -385,8 +385,7 @@ tbody td{padding:13px 18px;font-size:.88rem;}
     <div class="modal-head"><h3 id="tit-pagamento">Registrar Pagamento</h3><button class="btn-close" onclick="closeModal('pagamento')"><i class="fas fa-times"></i></button></div>
     <div class="modal-body"><div class="form-grid">
       <div class="fg full"><label>Trabalho</label><select id="p-trabalho"><option value="">Selecione...</option></select></div>
-      <div class="fg"><label>Valor (R$)</label><input type="text" id="p-valor" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
-      <div class="fg"><label>Status</label><select id="p-status"><option value="A receber">A receber</option><option value="Pago">Pago</option><option value="Atrasado">Atrasado</option></select></div>
+      <div class="fg"><label>Valor (R$)</label><input type="number" id="p-valor" placeholder="0.00" step="any"></div>
       <div class="fg"><label>Vencimento</label><input type="date" id="p-vencimento"></div>
       <div class="fg"><label>Data de pagamento</label><input type="date" id="p-pagamento"></div>
       <div class="fg full"><label>Descrição</label><input type="text" id="p-descricao" placeholder="Ex: Primeira parcela..."></div>
@@ -403,7 +402,7 @@ tbody td{padding:13px 18px;font-size:.88rem;}
       <div class="fg full"><label>Trabalho</label><select id="d-trabalho"><option value="">Selecione...</option></select></div>
       <div class="fg"><label>Data</label><input type="date" id="d-data"></div>
       <div class="fg"><label>Tipo / Categoria</label><select id="d-tipo"><option value="Combustível">Combustível</option><option value="Pedágio">Pedágio</option><option value="Alimentação">Alimentação</option><option value="Hospedagem">Hospedagem</option><option value="Geral">Geral</option></select></div>
-      <div class="fg"><label>Valor (R$)</label><input type="text" id="d-valor" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+      <div class="fg"><label>Valor (R$)</label><input type="number" id="d-valor" placeholder="0.00" step="any"></div>
       <div class="fg full"><label>Descrição</label><textarea id="d-descricao" placeholder="Detalhes da despesa..."></textarea></div>
     </div></div>
     <div class="modal-foot"><button class="btn-cancel" onclick="closeModal('despesa')">Cancelar</button><button class="btn-save" id="btn-save-despesa" onclick="salvar('despesa')"><i class="fas fa-check"></i> Salvar</button></div>
@@ -417,7 +416,7 @@ tbody td{padding:13px 18px;font-size:.88rem;}
     <div class="modal-body"><div class="form-grid">
       <div class="fg"><label>Data</label><input type="date" id="dg-data"></div>
       <div class="fg"><label>Tipo / Categoria</label><select id="dg-tipo"><option value="Contador">Contador</option><option value="Oficina">Oficina</option><option value="Manutenção equipamentos">Manutenção equipamentos</option><option value="Geral">Geral</option></select></div>
-      <div class="fg"><label>Valor (R$)</label><input type="text" id="dg-valor" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+      <div class="fg"><label>Valor (R$)</label><input type="number" id="dg-valor" placeholder="0.00" step="any"></div>
       <div class="fg full"><label>Descrição</label><textarea id="dg-descricao" placeholder="Detalhes da despesa..."></textarea></div>
     </div></div>
     <div class="modal-foot"><button class="btn-cancel" onclick="closeModal('despesa_geral')">Cancelar</button><button class="btn-save" id="btn-save-despesa_geral" onclick="salvar('despesa_geral')"><i class="fas fa-check"></i> Salvar</button></div>
@@ -515,23 +514,6 @@ function renderAll(){renderClientes();renderTrabalhos();renderPagamentos();rende
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const brl=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtDate=d=>d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):'—';
-
-// ── FORMATAÇÃO BRL NOS INPUTS ──
-// Converte texto mascarado "R$ 1.234,56" → número 1234.56
-function parseBRL(str){ return parseFloat((str||'').replace(/[^\d,]/g,'').replace(',','.'))||0; }
-// Aplica máscara BRL ao digitar
-function maskBRL(el){
-  let v=el.value.replace(/\D/g,'');
-  if(!v){el.value='';return;}
-  v=(parseInt(v)/100).toFixed(2);
-  el.value='R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-// Preenche um input BRL com um valor numérico
-function setBRL(id,v){
-  const el=document.getElementById(id);if(!el)return;
-  const n=parseFloat(v)||0;
-  el.value=n>0?'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
-}
 function statusTag(s){const m={'Pago':'tag-green','A receber':'tag-orange','Parcelado':'tag-blue','Atrasado':'tag-red'};return`<span class="tag ${m[s]||'tag-gray'}">${esc(s||'—')}</span>`;}
 function statusEquipe(s){return s==='Ativo'?`<span class="tag tag-green">Ativo</span>`:`<span class="tag tag-gray">Inativo</span>`;}
 function filtrar(tipo,q){
@@ -543,8 +525,7 @@ function rows(t){return FILTERED[t]||DB[t];}
 function emptyRow(c,m='Nenhum registro encontrado.'){return`<tr><td colspan="${c}"><div class="empty-state"><i class="fas fa-inbox"></i><p>${m}</p></div></td></tr>`;}
 
 function renderClientes(){
-  const d=[...rows('clientes')].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
-  document.getElementById('badge-clientes').textContent=d.length+' reg.';
+  const d=rows('clientes');document.getElementById('badge-clientes').textContent=d.length+' reg.';
   document.getElementById('tbody-clientes').innerHTML=!d.length?emptyRow(6):d.map(c=>`<tr><td><strong>${esc(c.nome)}</strong></td><td class="td-muted">${esc(c.endereco||'—')}</td><td>${c.carteira?`<span class="tag tag-gray">${esc(c.carteira)}</span>`:'—'}</td><td class="td-muted">${c.latitude&&c.longitude?`${(+c.latitude).toFixed(4)}, ${(+c.longitude).toFixed(4)}`:'—'}</td><td class="td-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.descricao||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('cliente','${c.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('cliente','${c.id}','${esc(c.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function statusTrabTag(s){const m={'Aguardando':'tag-orange','Em andamento':'tag-blue','Concluído':'tag-green'};return`<span class="tag ${m[s]||'tag-gray'}" style="font-size:.68rem">${esc(s||'—')}</span>`;}
@@ -555,7 +536,7 @@ function renderTrabalhos(){
     // Soma despesas vinculadas a este trabalho
     const totalDesp=DB.despesas.filter(d=>d.trabalho_id===t.id).reduce((s,d)=>s+(+d.valor||0),0);
     // Soma pagamentos recebidos (Pago) deste trabalho
-    const totalRecebido=DB.pagamentos.filter(p=>p.trabalho_id===t.id&&p.status==='Pago').reduce((s,p)=>s+(+p.valor||0),0);
+    const totalRecebido=DB.pagamentos.filter(p=>p.trabalho_id===t.id).reduce((s,p)=>s+(+p.valor||0),0);
     const corS=t.sandro_recebe<0?'color:var(--danger)':'';
     const corR=t.rafael_recebe<0?'color:var(--danger)':'';
     return`<tr>
@@ -580,7 +561,7 @@ function renderTrabalhos(){
 }
 function renderPagamentos(){
   const d=rows('pagamentos');document.getElementById('badge-pagamentos').textContent=d.length+' reg.';
-  document.getElementById('tbody-pagamentos').innerHTML=!d.length?emptyRow(7):d.map(p=>{const tr=DB.trabalhos.find(t=>t.id===p.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td><strong>${esc(cli?.nome||tr?.servico||'—')}</strong></td><td>${brl(p.valor)}</td><td class="td-muted">${fmtDate(p.data_vencimento)}</td><td class="td-muted">${fmtDate(p.data_pagamento)}</td><td>${statusTag(p.status)}</td><td class="td-muted">${esc(p.descricao||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('pagamento','${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('pagamento','${p.id}','pagamento de ${brl(p.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
+  document.getElementById('tbody-pagamentos').innerHTML=!d.length?emptyRow(6):d.map(p=>{const tr=DB.trabalhos.find(t=>t.id===p.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td><strong>${esc(cli?.nome||tr?.servico||'—')}</strong></td><td>${brl(p.valor)}</td><td class="td-muted">${fmtDate(p.data_vencimento)}</td><td class="td-muted">${fmtDate(p.data_pagamento)}</td><td class="td-muted">${esc(p.descricao||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('pagamento','${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('pagamento','${p.id}','pagamento de ${brl(p.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
 }
 function renderDespesas(){
   const d=rows('despesas');document.getElementById('badge-despesas').textContent=d.length+' reg.';
@@ -591,13 +572,11 @@ function renderDespesasGerais(){
   document.getElementById('tbody-despesas-gerais').innerHTML=!d.length?emptyRow(5):d.map(d=>`<tr><td class="td-muted">${fmtDate(d.data)}</td><td><span class="tag tag-blue">${esc(d.tipo||'—')}</span></td><td>${esc(d.descricao||'—')}</td><td><strong>${brl(d.valor)}</strong></td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('despesa_geral','${d.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('despesa_geral','${d.id}','despesa geral ${brl(d.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function renderOperadores(){
-  const d=[...rows('operadores')].sort((a,b)=>{if(a.status!==b.status)return a.status==='Ativo'?-1:1;return(a.nome||'').localeCompare(b.nome||'','pt-BR');});
-  document.getElementById('badge-operadores').textContent=d.length+' reg.';
+  const d=rows('operadores');document.getElementById('badge-operadores').textContent=d.length+' reg.';
   document.getElementById('tbody-operadores').innerHTML=!d.length?emptyRow(3):d.map(o=>`<tr><td><strong>${esc(o.nome)}</strong></td><td>${statusEquipe(o.status)}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('operador','${o.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('operador','${o.id}','${esc(o.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function renderRepresentantes(){
-  const d=[...rows('representantes')].sort((a,b)=>{if(a.status!==b.status)return a.status==='Ativo'?-1:1;return(a.nome||'').localeCompare(b.nome||'','pt-BR');});
-  document.getElementById('badge-representantes').textContent=d.length+' reg.';
+  const d=rows('representantes');document.getElementById('badge-representantes').textContent=d.length+' reg.';
   document.getElementById('tbody-representantes').innerHTML=!d.length?emptyRow(3):d.map(r=>`<tr><td><strong>${esc(r.nome)}</strong></td><td>${statusEquipe(r.status)}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('representante','${r.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('representante','${r.id}','${esc(r.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 
@@ -606,10 +585,10 @@ function loadDashboard(){
   const doMes=arr=>arr.filter(r=>{const d=new Date((r.data_execucao||r.data||r.data_vencimento||r.data_pagamento||'')+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===ano;});
   const trabMes=doMes(DB.trabalhos);
   // KPI faturamento = pagamentos com status Pago recebidos no mês
-  const fatMes=DB.pagamentos.filter(p=>p.status==='Pago'&&p.data_pagamento&&(()=>{const d=new Date(p.data_pagamento+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===ano;})()).reduce((s,p)=>s+(+p.valor||0),0);
+  const fatMes=DB.pagamentos.filter(p=>p.data_pagamento&&(()=>{const d=new Date(p.data_pagamento+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===ano;})()).reduce((s,p)=>s+(+p.valor||0),0);
   document.getElementById('kpi-fat').textContent=brl(fatMes);
   document.getElementById('kpi-ativos').textContent=DB.trabalhos.filter(t=>t.status_trabalho==='Em andamento').length;
-  document.getElementById('kpi-saldo').textContent=brl(DB.pagamentos.filter(p=>p.status==='A receber').reduce((s,p)=>s+(+p.valor||0),0));
+  const totalPago=DB.pagamentos.reduce((s,p)=>s+(+p.valor||0),0);const totalFaturado=DB.trabalhos.reduce((s,t)=>s+(+t.valor_total||0),0);document.getElementById('kpi-saldo').textContent=brl(Math.max(0,totalFaturado-totalPago));
   document.getElementById('kpi-desp').textContent=brl([...doMes(DB.despesas),...doMes(DB.despesas_gerais)].reduce((s,d)=>s+(+d.valor||0),0));
   document.getElementById('kpi-ha').textContent=trabMes.reduce((s,t)=>s+(+t.dimensao_ha||0),0).toFixed(1)+' ha';
   document.getElementById('kpi-op').textContent=brl(trabMes.reduce((s,t)=>s+(+t.ganho_operador||0),0));
@@ -636,15 +615,13 @@ function buildCharts(mes,ano,sc){
 
 function percFaixa(ha){if(!ha||ha<=0)return 0;if(ha<=300)return 0.05;if(ha<=700)return 0.07;return 0.10;}
 function calcGanhos(){
-  const ha=parseFloat(document.getElementById('t-dimensao').value)||0;
-  const vha=parseBRL(document.getElementById('t-valor-ha').value);
+  const ha=parseFloat(document.getElementById('t-dimensao').value)||0,vha=parseFloat(document.getElementById('t-valor-ha').value)||0;
   const total=ha*vha,perc=percFaixa(ha),ganho=total*perc,pct=(perc*100).toFixed(0)+'%';
-  setBRL('t-valor',total);
-  setBRL('t-ganho-op',ganho);
-  setBRL('t-ganho-rep',ganho);
+  document.getElementById('t-valor').value=total?total.toFixed(2):'';
+  document.getElementById('t-ganho-op').value=ganho?ganho.toFixed(2):'';
+  document.getElementById('t-ganho-rep').value=ganho?ganho.toFixed(2):'';
   const lbl=ha>0?`${pct} de ${brl(total)} (faixa: ${ha<=300?'≤300':ha<=700?'301–700':'>700'} ha)`:'';
-  document.getElementById('prev-op').textContent=lbl;
-  document.getElementById('prev-rep').textContent=lbl;
+  document.getElementById('prev-op').textContent=lbl;document.getElementById('prev-rep').textContent=lbl;
 }
 
 function openModal(tipo){
@@ -664,10 +641,10 @@ function openEdit(tipo,id){
   if(tipo==='trabalho'||tipo==='pagamento'||tipo==='despesa')populateSelects(tipo);
   setTimeout(()=>{
     if(tipo==='cliente'){setVal('c-nome',r.nome);setVal('c-endereco',r.endereco);setVal('c-lat',r.latitude);setVal('c-lng',r.longitude);setVal('c-carteira',r.carteira);setVal('c-descricao',r.descricao);}
-    else if(tipo==='trabalho'){setVal('t-cliente',r.cliente_id);setVal('t-servico',r.servico);setVal('t-operador',r.operador_id);setVal('t-representante',r.representante_id||'');setVal('t-dimensao',r.dimensao_ha);setBRL('t-valor-ha',r.valor_ha);setVal('t-data-pedido',r.data_pedido);setVal('t-data-exec',r.data_execucao);setBRL('t-valor',r.valor_total);setBRL('t-ganho-op',r.ganho_operador);setBRL('t-ganho-rep',r.ganho_representante);setVal('t-status',r.status_pagamento);setVal('t-status-trab',r.status_trabalho||'Aguardando');const ha=+r.dimensao_ha||0,perc=percFaixa(ha),pct=(perc*100).toFixed(0)+'%',lbl=ha>0?`${pct} — faixa ${ha<=300?'≤300':ha<=700?'301–700':'>700'} ha`:'';document.getElementById('prev-op').textContent=lbl;document.getElementById('prev-rep').textContent=lbl;}
-    else if(tipo==='pagamento'){setVal('p-trabalho',r.trabalho_id);setBRL('p-valor',r.valor);setVal('p-vencimento',r.data_vencimento);setVal('p-pagamento',r.data_pagamento);setVal('p-descricao',r.descricao);}
-    else if(tipo==='despesa'){setVal('d-trabalho',r.trabalho_id);setVal('d-data',r.data);setVal('d-tipo',r.tipo);setBRL('d-valor',r.valor);setVal('d-descricao',r.descricao);}
-    else if(tipo==='despesa_geral'){setVal('dg-data',r.data);setVal('dg-tipo',r.tipo);setBRL('dg-valor',r.valor);setVal('dg-descricao',r.descricao);}
+    else if(tipo==='trabalho'){setVal('t-cliente',r.cliente_id);setVal('t-servico',r.servico);setVal('t-operador',r.operador_id);setVal('t-representante',r.representante_id||'');setVal('t-dimensao',r.dimensao_ha);setVal('t-valor-ha',r.valor_ha);setVal('t-data-pedido',r.data_pedido);setVal('t-data-exec',r.data_execucao);setVal('t-valor',r.valor_total);setVal('t-ganho-op',r.ganho_operador);setVal('t-ganho-rep',r.ganho_representante);setVal('t-status',r.status_pagamento);setVal('t-status-trab',r.status_trabalho||'Aguardando');const ha=+r.dimensao_ha||0,perc=percFaixa(ha),pct=(perc*100).toFixed(0)+'%',lbl=ha>0?`${pct} — faixa ${ha<=300?'≤300':ha<=700?'301–700':'>700'} ha`:'';document.getElementById('prev-op').textContent=lbl;document.getElementById('prev-rep').textContent=lbl;}
+    else if(tipo==='pagamento'){setVal('p-trabalho',r.trabalho_id);setVal('p-valor',r.valor);setVal('p-vencimento',r.data_vencimento);setVal('p-pagamento',r.data_pagamento);setVal('p-descricao',r.descricao);}
+    else if(tipo==='despesa'){setVal('d-trabalho',r.trabalho_id);setVal('d-data',r.data);setVal('d-tipo',r.tipo);setVal('d-valor',r.valor);setVal('d-descricao',r.descricao);}
+    else if(tipo==='despesa_geral'){setVal('dg-data',r.data);setVal('dg-tipo',r.tipo);setVal('dg-valor',r.valor);setVal('dg-descricao',r.descricao);}
     else if(tipo==='operador'){setVal('op-nome',r.nome);setVal('op-status',r.status);}
     else if(tipo==='representante'){setVal('rp-nome',r.nome);setVal('rp-status',r.status);}
   },50);
@@ -688,7 +665,6 @@ function limparForm(tipo){
   }[tipo]||[];
   ids.forEach(id=>setVal(id,''));
   if(tipo==='trabalho'){setVal('t-status','A receber');setVal('t-status-trab','Aguardando');document.getElementById('prev-op').textContent='';document.getElementById('prev-rep').textContent='';}
-  if(tipo==='pagamento')setVal('p-status','A receber');
   if(tipo==='despesa')setVal('d-tipo','Combustível');
   if(tipo==='despesa_geral')setVal('dg-tipo','Contador');
   if(tipo==='operador')setVal('op-status','Ativo');
@@ -703,35 +679,24 @@ async function salvar(tipo){
   const btn=document.getElementById('btn-save-'+tipo);let payload;
   try{
     if(tipo==='cliente'){const nome=document.getElementById('c-nome').value.trim();if(!nome)throw new Error('Nome é obrigatório.');payload={nome,endereco:document.getElementById('c-endereco').value.trim()||null,latitude:parseFloat(document.getElementById('c-lat').value)||null,longitude:parseFloat(document.getElementById('c-lng').value)||null,carteira:document.getElementById('c-carteira').value||null,descricao:document.getElementById('c-descricao').value.trim()||null};}
-    else if(tipo==='trabalho'){const cli=document.getElementById('t-cliente').value,op=document.getElementById('t-operador').value,dim=parseFloat(document.getElementById('t-dimensao').value)||0,vha=parseBRL(document.getElementById('t-valor-ha').value);if(!cli)throw new Error('Selecione o cliente.');if(!op)throw new Error('Selecione o operador.');if(!dim)throw new Error('Informe a dimensão em ha.');const total=dim*vha,perc=percFaixa(dim),ganho=total*perc;payload={cliente_id:cli,servico:document.getElementById('t-servico').value.trim()||null,operador_id:op,representante_id:document.getElementById('t-representante').value||null,dimensao_ha:dim,valor_ha:vha,valor_total:total,ganho_operador:ganho,ganho_representante:ganho,data_pedido:document.getElementById('t-data-pedido').value||null,data_execucao:document.getElementById('t-data-exec').value||null,status_pagamento:document.getElementById('t-status').value,status_trabalho:document.getElementById('t-status-trab').value,saldo:total};}
-    else if(tipo==='pagamento'){const tr=document.getElementById('p-trabalho').value,vl=parseBRL(document.getElementById('p-valor').value);if(!tr)throw new Error('Selecione o trabalho.');if(!vl)throw new Error('Informe o valor.');payload={trabalho_id:tr,valor:vl,data_vencimento:document.getElementById('p-vencimento').value||null,data_pagamento:document.getElementById('p-pagamento').value||null,descricao:document.getElementById('p-descricao').value.trim()||null};}
-    else if(tipo==='despesa'){const tr=document.getElementById('d-trabalho').value,vl=parseBRL(document.getElementById('d-valor').value);if(!tr)throw new Error('Selecione o trabalho.');if(!vl)throw new Error('Informe o valor.');payload={trabalho_id:tr,data:document.getElementById('d-data').value||null,tipo:document.getElementById('d-tipo').value,valor:vl,descricao:document.getElementById('d-descricao').value.trim()||null};}
-    else if(tipo==='despesa_geral'){const vl=parseBRL(document.getElementById('dg-valor').value);if(!vl)throw new Error('Informe o valor.');payload={data:document.getElementById('dg-data').value||null,tipo:document.getElementById('dg-tipo').value,valor:vl,descricao:document.getElementById('dg-descricao').value.trim()||null};}
+    else if(tipo==='trabalho'){const cli=document.getElementById('t-cliente').value,op=document.getElementById('t-operador').value,dim=parseFloat(document.getElementById('t-dimensao').value)||0,vha=parseFloat(document.getElementById('t-valor-ha').value)||0;if(!cli)throw new Error('Selecione o cliente.');if(!op)throw new Error('Selecione o operador.');if(!dim)throw new Error('Informe a dimensão em ha.');const total=dim*vha,perc=percFaixa(dim),ganho=total*perc;payload={cliente_id:cli,servico:document.getElementById('t-servico').value.trim()||null,operador_id:op,representante_id:document.getElementById('t-representante').value||null,dimensao_ha:dim,valor_ha:vha,valor_total:total,ganho_operador:ganho,ganho_representante:ganho,data_pedido:document.getElementById('t-data-pedido').value||null,data_execucao:document.getElementById('t-data-exec').value||null,status_pagamento:document.getElementById('t-status').value,status_trabalho:document.getElementById('t-status-trab').value,saldo:total};}
+    else if(tipo==='pagamento'){const tr=document.getElementById('p-trabalho').value,vl=parseFloat(document.getElementById('p-valor').value)||0;if(!tr)throw new Error('Selecione o trabalho.');if(!vl)throw new Error('Informe o valor.');payload={trabalho_id:tr,valor:vl,data_vencimento:document.getElementById('p-vencimento').value||null,data_pagamento:document.getElementById('p-pagamento').value||null,descricao:document.getElementById('p-descricao').value.trim()||null};}
+    else if(tipo==='despesa'){const tr=document.getElementById('d-trabalho').value,vl=parseFloat(document.getElementById('d-valor').value)||0;if(!tr)throw new Error('Selecione o trabalho.');if(!vl)throw new Error('Informe o valor.');payload={trabalho_id:tr,data:document.getElementById('d-data').value||null,tipo:document.getElementById('d-tipo').value,valor:vl,descricao:document.getElementById('d-descricao').value.trim()||null};}
+    else if(tipo==='despesa_geral'){const vl=parseFloat(document.getElementById('dg-valor').value)||0;if(!vl)throw new Error('Informe o valor.');payload={data:document.getElementById('dg-data').value||null,tipo:document.getElementById('dg-tipo').value,valor:vl,descricao:document.getElementById('dg-descricao').value.trim()||null};}
     else if(tipo==='operador'){const nome=document.getElementById('op-nome').value.trim();if(!nome)throw new Error('Nome é obrigatório.');payload={nome,status:document.getElementById('op-status').value};}
     else if(tipo==='representante'){const nome=document.getElementById('rp-nome').value.trim();if(!nome)throw new Error('Nome é obrigatório.');payload={nome,status:document.getElementById('rp-status').value};}
     btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Salvando...';
     const epMap={despesa_geral:'/api/despesas_gerais',operador:'/api/operadores',representante:'/api/representantes'};
     const ep=epMap[tipo]||'/api/'+tipo+'s';
     editState.id?await apiPut(ep+'/'+editState.id,payload):await apiPost(ep,payload);
-    closeModal(tipo);await loadAll();
-    if(document.getElementById('sec-relatorios').classList.contains('active')) gerarRelatorio();
-    toast(editState.id?'Registro atualizado!':'Registro salvo!');
+    closeModal(tipo);await loadAll();toast(editState.id?'Registro atualizado!':'Registro salvo!');
   }catch(e){toast(e.message,1);}
   finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-check"></i> Salvar';}}
 }
 
 async function confirmarDel(){
   if(!delState.tipo)return;
-  try{
-    const epMap={despesa_geral:'/api/despesas_gerais',operador:'/api/operadores',representante:'/api/representantes'};
-    await apiDel((epMap[delState.tipo]||'/api/'+delState.tipo+'s')+'/'+delState.id);
-    closeModal('confirm');
-    await loadAll();
-    // Força recálculo do dashboard e relatório se visíveis
-    loadDashboard();
-    if(document.getElementById('sec-relatorios').classList.contains('active')) gerarRelatorio();
-    toast('Registro excluído.');
-  }
+  try{const epMap={despesa_geral:'/api/despesas_gerais',operador:'/api/operadores',representante:'/api/representantes'};await apiDel((epMap[delState.tipo]||'/api/'+delState.tipo+'s')+'/'+delState.id);closeModal('confirm');await loadAll();toast('Registro excluído.');}
   catch(e){toast(e.message,1);}
   delState={};
 }
