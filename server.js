@@ -223,7 +223,8 @@ app.post('/api/trabalhos', requireAuth, async (req, res) => {
     try {
         const campos = ['cliente_id','operador_id','representante_id','servico',
             'dimensao_ha','valor_ha','valor_total','ganho_operador',
-            'ganho_representante','saldo','data_pedido','data_execucao','status_pagamento'];
+            'ganho_representante','saldo','data_pedido','data_execucao',
+            'status_pagamento','status_trabalho'];
         const payload = filtrarCampos(req.body, campos);
         const { data, error } = await req.db.from('trabalhos').insert(payload).select().single();
         if (error) throw error;
@@ -239,7 +240,8 @@ app.put('/api/trabalhos/:id', requireAuth, async (req, res) => {
     try {
         const campos = ['cliente_id','operador_id','representante_id','servico',
             'dimensao_ha','valor_ha','valor_total','ganho_operador',
-            'ganho_representante','saldo','data_pedido','data_execucao','status_pagamento'];
+            'ganho_representante','saldo','data_pedido','data_execucao',
+            'status_pagamento','status_trabalho'];
         const payload = filtrarCampos(req.body, campos);
         const { data, error } = await req.db
             .from('trabalhos').update(payload).eq('id', req.params.id).select().single();
