@@ -286,7 +286,7 @@ crudRoutes(app, 'despesas_gerais', [
 ]);
 
 crudRoutes(app, 'pagamentos', [
-    'trabalho_id', 'data_vencimento', 'data_pagamento', 'valor', 'status', 'descricao'
+    'trabalho_id', 'data_vencimento', 'data_pagamento', 'valor', 'descricao'
 ]);
 
 // ── ROTAS DE AUTENTICAÇÃO ────────────────────────────────────────────────────
