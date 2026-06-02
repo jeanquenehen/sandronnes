@@ -528,7 +528,8 @@ function rows(t){return FILTERED[t]||DB[t];}
 function emptyRow(c,m='Nenhum registro encontrado.'){return`<tr><td colspan="${c}"><div class="empty-state"><i class="fas fa-inbox"></i><p>${m}</p></div></td></tr>`;}
 
 function renderClientes(){
-  const d=rows('clientes');document.getElementById('badge-clientes').textContent=d.length+' reg.';
+  const d=[...rows('clientes')].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  document.getElementById('badge-clientes').textContent=d.length+' reg.';
   document.getElementById('tbody-clientes').innerHTML=!d.length?emptyRow(6):d.map(c=>`<tr><td><strong>${esc(c.nome)}</strong></td><td class="td-muted">${esc(c.endereco||'—')}</td><td>${c.carteira?`<span class="tag tag-gray">${esc(c.carteira)}</span>`:'—'}</td><td class="td-muted">${c.latitude&&c.longitude?`${(+c.latitude).toFixed(4)}, ${(+c.longitude).toFixed(4)}`:'—'}</td><td class="td-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.descricao||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('cliente','${c.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('cliente','${c.id}','${esc(c.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function statusTrabTag(s){const m={'Aguardando':'tag-orange','Em andamento':'tag-blue','Concluído':'tag-green'};return`<span class="tag ${m[s]||'tag-gray'}" style="font-size:.68rem">${esc(s||'—')}</span>`;}
@@ -575,11 +576,13 @@ function renderDespesasGerais(){
   document.getElementById('tbody-despesas-gerais').innerHTML=!d.length?emptyRow(5):d.map(d=>`<tr><td class="td-muted">${fmtDate(d.data)}</td><td><span class="tag tag-blue">${esc(d.tipo||'—')}</span></td><td>${esc(d.descricao||'—')}</td><td><strong>${brl(d.valor)}</strong></td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('despesa_geral','${d.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('despesa_geral','${d.id}','despesa geral ${brl(d.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function renderOperadores(){
-  const d=rows('operadores');document.getElementById('badge-operadores').textContent=d.length+' reg.';
+  const d=[...rows('operadores')].sort((a,b)=>{if(a.status!==b.status)return a.status==='Ativo'?-1:1;return(a.nome||'').localeCompare(b.nome||'','pt-BR');});
+  document.getElementById('badge-operadores').textContent=d.length+' reg.';
   document.getElementById('tbody-operadores').innerHTML=!d.length?emptyRow(3):d.map(o=>`<tr><td><strong>${esc(o.nome)}</strong></td><td>${statusEquipe(o.status)}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('operador','${o.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('operador','${o.id}','${esc(o.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function renderRepresentantes(){
-  const d=rows('representantes');document.getElementById('badge-representantes').textContent=d.length+' reg.';
+  const d=[...rows('representantes')].sort((a,b)=>{if(a.status!==b.status)return a.status==='Ativo'?-1:1;return(a.nome||'').localeCompare(b.nome||'','pt-BR');});
+  document.getElementById('badge-representantes').textContent=d.length+' reg.';
   document.getElementById('tbody-representantes').innerHTML=!d.length?emptyRow(3):d.map(r=>`<tr><td><strong>${esc(r.nome)}</strong></td><td>${statusEquipe(r.status)}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('representante','${r.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('representante','${r.id}','${esc(r.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 
