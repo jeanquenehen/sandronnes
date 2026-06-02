@@ -129,6 +129,7 @@ tbody td{padding:13px 18px;font-size:.88rem;}
 .toast i{color:var(--primary);}
 .toast.err i{color:var(--danger);}
 .mob-btn{display:none;position:fixed;top:16px;left:16px;z-index:300;background:var(--primary);color:#fff;border:none;width:42px;height:42px;border-radius:13px;font-size:1rem;cursor:pointer;align-items:center;justify-content:center;box-shadow:var(--shadow);}
+.logo-img { height: 30px; width: auto; vertical-align: middle; margin-right: 8px; }
 @media(max-width:900px){.kpi-grid{grid-template-columns:1fr 1fr;}.charts-grid{grid-template-columns:1fr;}}
 @media(max-width:768px){
   .mob-btn{display:flex;}
@@ -144,7 +145,8 @@ tbody td{padding:13px 18px;font-size:.88rem;}
 <body>
 <button class="mob-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
 <aside id="sidebar">
-  <div class="logo"><i class="fas fa-circle-nodes"></i> Sandronnes</div>
+  <div class="logo">
+    <img src="assets/Sandronnes_logo.png" alt="Logo Sandronnes" class="logo-img">Sandronnes</div>
   <nav><ul>
     <li class="active" onclick="navTo('dashboard',this)"><i class="fas fa-chart-pie"></i> Dashboard</li>
     <li onclick="navTo('trabalhos',this)"><i class="fas fa-helicopter"></i> Trabalhos</li>
