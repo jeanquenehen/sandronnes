@@ -783,17 +783,17 @@ function gerarRelatorio(){
   const receita=trabs.reduce((s,t)=>s+(+t.valor_total||0),0);
   const despTot=[...despsTrab,...despsGer].reduce((s,d)=>s+(+d.valor||0),0);
   const liquido=receita-despTot;
-  document.getElementById('rel-receita').textContent=formatarMoeda(receita);
-  document.getElementById('rel-despesas').textContent=formatarMoeda(despTot);
-  document.getElementById('rel-liquido').textContent=formatarMoeda(liquido);
+  document.getElementById('rel-receita').textContent=brl(receita);
+  document.getElementById('rel-despesas').textContent=brl(despTot);
+  document.getElementById('rel-liquido').textContent=brl(liquido);
 
   // Ganhos por operador
   const opMap={};trabs.forEach(t=>{const op=DB.operadores.find(o=>o.id===t.operador_id);if(!op)return;if(!opMap[op.id])opMap[op.id]={nome:op.nome,qtd:0,ha:0,ganho:0};opMap[op.id].qtd++;opMap[op.id].ha+=(+t.dimensao_ha||0);opMap[op.id].ganho+=(+t.ganho_operador||0);});
-  document.getElementById('rel-tbody-op').innerHTML=Object.values(opMap).length?Object.values(opMap).map(o=>`<tr><td>${esc(o.nome)}</td><td>${o.qtd}</td><td>${o.ha.toFixed(1)} ha</td><td><strong>${formatarMoeda(o.ganho)}</strong></td></tr>`).join(''):emptyRow(4,'Nenhum dado no período.');
+  document.getElementById('rel-tbody-op').innerHTML=Object.values(opMap).length?Object.values(opMap).map(o=>`<tr><td>${esc(o.nome)}</td><td>${o.qtd}</td><td>${o.ha.toFixed(1)} ha</td><td><strong>${brl(o.ganho)}</strong></td></tr>`).join(''):emptyRow(4,'Nenhum dado no período.');
 
   // Ganhos por representante
   const repMap={};trabs.forEach(t=>{if(!t.representante_id)return;const rp=DB.representantes.find(r=>r.id===t.representante_id);if(!rp)return;if(!repMap[rp.id])repMap[rp.id]={nome:rp.nome,qtd:0,ha:0,ganho:0};repMap[rp.id].qtd++;repMap[rp.id].ha+=(+t.dimensao_ha||0);repMap[rp.id].ganho+=(+t.ganho_representante||0);});
-  document.getElementById('rel-tbody-rep').innerHTML=Object.values(repMap).length?Object.values(repMap).map(r=>`<tr><td>${esc(r.nome)}</td><td>${r.qtd}</td><td>${r.ha.toFixed(1)} ha</td><td><strong>${formatarMoeda(r.ganho)}</strong></td></tr>`).join(''):emptyRow(4,'Nenhum dado no período.');
+  document.getElementById('rel-tbody-rep').innerHTML=Object.values(repMap).length?Object.values(repMap).map(r=>`<tr><td>${esc(r.nome)}</td><td>${r.qtd}</td><td>${r.ha.toFixed(1)} ha</td><td><strong>${brl(r.ganho)}</strong></td></tr>`).join(''):emptyRow(4,'Nenhum dado no período.');
 
   // Divisão entre sócios: percentual sobre o SALDO LÍQUIDO de cada trabalho
   // Despesas gerais do período: divididas 50/50
@@ -834,20 +834,20 @@ function gerarRelatorio(){
   document.getElementById('rel-tbody-socios').innerHTML = `
     <tr>
       <td><strong>Sandro</strong></td>
-      <td style="${corValor(sandroTrabs)}">${formatarMoeda(sandroTrabs)}</td>
-      <td style="color:var(--danger)">− ${formatarMoeda(sandroDesp)}</td>
-      <td style="font-weight:700;font-size:.95rem;${corValor(sandroTotal)}">${formatarMoeda(sandroTotal)}</td>
+      <td style="${corValor(sandroTrabs)}">${brl(sandroTrabs)}</td>
+      <td style="color:var(--danger)">− ${brl(sandroDesp)}</td>
+      <td style="font-weight:700;font-size:.95rem;${corValor(sandroTotal)}">${brl(sandroTotal)}</td>
     </tr>
     <tr>
       <td><strong>Rafael</strong></td>
-      <td style="${corValor(rafaelTrabs)}">${formatarMoeda(rafaelTrabs)}</td>
-      <td style="color:var(--danger)">− ${formatarMoeda(rafaelDesp)}</td>
-      <td style="font-weight:700;font-size:.95rem;${corValor(rafaelTotal)}">${formatarMoeda(rafaelTotal)}</td>
+      <td style="${corValor(rafaelTrabs)}">${brl(rafaelTrabs)}</td>
+      <td style="color:var(--danger)">− ${brl(rafaelDesp)}</td>
+      <td style="font-weight:700;font-size:.95rem;${corValor(rafaelTotal)}">${brl(rafaelTotal)}</td>
     </tr>`;
 
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';Chart.defaults.color=isDark?'#8892a0':'#7f8c8d';
   if(charts.relrd)charts.relrd.destroy();if(charts.reltr)charts.reltr.destroy();
-  charts.relrd=new Chart(document.getElementById('chart-rel-recdesp'),{type:'bar',data:{labels:['Receita','Despesas','Líquido'],datasets:[{data:[receita,despTot,liquido],backgroundColor:['rgba(46,204,113,.7)','rgba(231,76,60,.7)','rgba(52,152,219,.7)'],borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>formatarMoeda(v)}}}}});
+  charts.relrd=new Chart(document.getElementById('chart-rel-recdesp'),{type:'bar',data:{labels:['Receita','Despesas','Líquido'],datasets:[{data:[receita,despTot,liquido],backgroundColor:['rgba(46,204,113,.7)','rgba(231,76,60,.7)','rgba(52,152,219,.7)'],borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$ '+v.toLocaleString('pt-BR')}}}}});
   const byStatus={};trabs.forEach(t=>{const s=t.status_pagamento||'—';byStatus[s]=(byStatus[s]||0)+1;});
   charts.reltr=new Chart(document.getElementById('chart-rel-trabalhos'),{type:'doughnut',data:{labels:Object.keys(byStatus),datasets:[{data:Object.values(byStatus),backgroundColor:['rgba(46,204,113,.8)','rgba(52,152,219,.8)','rgba(243,156,18,.8)','rgba(231,76,60,.8)'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
 }
