@@ -306,6 +306,10 @@ crudRoutes(app, 'despesas', [
     'trabalho_id', 'data', 'tipo', 'valor', 'descricao'
 ]);
 
+crudRoutes(app, 'investimentos', [
+    'data', 'valor', 'descricao'
+]);
+
 crudRoutes(app, 'despesas_gerais', [
     'data', 'tipo', 'valor', 'descricao'
 ]);

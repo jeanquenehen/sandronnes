@@ -6,7 +6,8 @@
 <link rel="icon" type="image/png" href="../assets/favicon.png">
 <title>Sandronnes</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 :root {
   --primary: #2ecc71; --primary-dim: rgba(46,204,113,0.12);
@@ -140,7 +141,15 @@ tbody td{padding:13px 18px;font-size:.88rem;}
   .form-grid{grid-template-columns:1fr;} .form-grid .full{grid-column:span 1;}
   thead th:nth-child(n+4),tbody td:nth-child(n+4){display:none;}
 }
-/* ── EXPANDABLE DETAIL ROW ── */
+/* Leaflet fix para dark mode */
+.leaflet-container{background:#f0f2f5;}
+[data-theme="dark"] .leaflet-container{background:#1a1d23;}
+.leaflet-popup-content-wrapper{background:var(--card);color:var(--text);border-radius:12px;box-shadow:var(--shadow);}
+.leaflet-popup-tip{background:var(--card);}
+.map-popup strong{display:block;font-size:.9rem;margin-bottom:4px;}
+.map-popup span{font-size:.8rem;color:var(--muted);}
+.map-popup .tag{margin-top:6px;}
+</style>
 .row-toggle{cursor:pointer;transition:background .15s;}
 .row-toggle:hover{background:var(--row-hover);}
 .row-toggle td:first-child::before{content:'▸ ';color:var(--muted);font-size:.7rem;}
@@ -170,6 +179,8 @@ tbody td{padding:13px 18px;font-size:.88rem;}
     <li onclick="navTo('despesas',this)"><i class="fas fa-receipt"></i> Despesas</li>
     <li onclick="navTo('clientes',this)"><i class="fas fa-map-marker-alt"></i> Clientes</li>
     <li onclick="navTo('equipe',this)"><i class="fas fa-users-gear"></i> Equipe</li>
+    <li onclick="navTo('mapa',this)"><i class="fas fa-map"></i> Mapa</li>
+    <li onclick="navTo('investimentos',this)"><i class="fas fa-chart-line"></i> Investimentos</li>
     <li onclick="navTo('relatorios',this)"><i class="fas fa-chart-bar"></i> Relatórios</li>
   </ul></nav>
   <div class="sidebar-foot">
@@ -237,8 +248,8 @@ tbody td{padding:13px 18px;font-size:.88rem;}
     <div class="table-card">
       <div class="table-head"><h3>Pagamentos recebidos</h3><span class="badge" id="badge-pagamentos">0</span></div>
       <div style="overflow-x:auto"><table>
-        <thead><tr><th>Trabalho / Cliente</th><th>Valor</th><th>Vencimento</th><th>Data pagamento</th><th>Descrição</th><th style="text-align:center">Ações</th></tr></thead>
-        <tbody id="tbody-pagamentos"><tr><td colspan="6"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando...</p></div></td></tr></tbody>
+        <thead><tr><th>Trabalho / Cliente</th><th>Valor</th><th>Data pagamento</th><th>Descrição</th><th style="text-align:center">Ações</th></tr></thead>
+        <tbody id="tbody-pagamentos"><tr><td colspan="5"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando...</p></div></td></tr></tbody>
       </table></div>
     </div>
   </div>
@@ -369,6 +380,37 @@ tbody td{padding:13px 18px;font-size:.88rem;}
       </table>
     </div>
   </div>
+
+  <!-- MAPA -->
+  <div class="section" id="sec-mapa">
+    <div class="table-card" style="padding:0;overflow:hidden;">
+      <div class="table-head" style="padding:18px 22px 14px">
+        <h3><i class="fas fa-map" style="color:var(--primary);margin-right:6px"></i>Trabalhos ativos no mapa</h3>
+        <span class="badge" id="badge-mapa">0 trabalhos</span>
+      </div>
+      <div id="leaflet-map" style="height:520px;width:100%;z-index:1;"></div>
+    </div>
+  </div>
+
+  <!-- INVESTIMENTOS -->
+  <div class="section" id="sec-investimentos">
+    <div class="actions-bar">
+      <div class="search-box"><i class="fas fa-search"></i>
+        <input type="text" placeholder="Buscar investimento..." oninput="filtrar('investimentos',this.value)">
+      </div>
+      <button class="btn-primary" onclick="openModal('investimento')"><i class="fas fa-plus"></i> Novo Investimento</button>
+    </div>
+    <div class="table-card">
+      <div class="table-head">
+        <h3>Investimentos</h3>
+        <span class="badge" id="badge-investimentos">0</span>
+      </div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th style="text-align:center">Ações</th></tr></thead>
+        <tbody id="tbody-investimentos"><tr><td colspan="4"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando...</p></div></td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
 </main>
 
 <!-- MODAL TRABALHO -->
@@ -401,7 +443,6 @@ tbody td{padding:13px 18px;font-size:.88rem;}
     <div class="modal-body"><div class="form-grid">
       <div class="fg full"><label>Trabalho</label><select id="p-trabalho"><option value="">Selecione...</option></select></div>
       <div class="fg"><label>Valor (R$)</label><input type="text" id="p-valor" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
-      <div class="fg"><label>Vencimento</label><input type="date" id="p-vencimento"></div>
       <div class="fg"><label>Data de pagamento</label><input type="date" id="p-pagamento"></div>
       <div class="fg full"><label>Descrição</label><input type="text" id="p-descricao" placeholder="Ex: Primeira parcela..."></div>
     </div></div>
@@ -488,6 +529,22 @@ tbody td{padding:13px 18px;font-size:.88rem;}
   </div>
 </div>
 
+<!-- MODAL INVESTIMENTO -->
+<div class="overlay" id="ov-investimento">
+  <div class="modal">
+    <div class="modal-head"><h3 id="tit-investimento">Novo Investimento</h3><button class="btn-close" onclick="closeModal('investimento')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="fg"><label>Data</label><input type="date" id="inv-data"></div>
+      <div class="fg"><label>Valor (R$)</label><input type="text" id="inv-valor" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+      <div class="fg full"><label>Descrição</label><textarea id="inv-descricao" placeholder="Ex: Compra de drone, marketing..."></textarea></div>
+    </div></div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('investimento')">Cancelar</button>
+      <button class="btn-save" id="btn-save-investimento" onclick="salvar('investimento')"><i class="fas fa-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONFIRMAR EXCLUSÃO -->
 <div class="overlay" id="ov-confirm">
   <div class="modal" style="max-width:380px">
@@ -499,7 +556,7 @@ tbody td{padding:13px 18px;font-size:.88rem;}
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toast-msg"></span></div>
 
 <script>
-const DB={clientes:[],trabalhos:[],pagamentos:[],despesas:[],despesas_gerais:[],operadores:[],representantes:[]};
+const DB={clientes:[],trabalhos:[],pagamentos:[],despesas:[],despesas_gerais:[],operadores:[],representantes:[],investimentos:[]};
 const FILTERED={};
 let editState={},delState={},charts={};
 
@@ -509,7 +566,7 @@ async function checkSession(){
 }
 async function logout(){await fetch('/api/logout',{method:'POST'});location.href='/manager.html';}
 
-const sectionMeta={dashboard:{title:'Dashboard',icon:'chart-pie'},trabalhos:{title:'Trabalhos',icon:'helicopter'},pagamentos:{title:'Pagamentos',icon:'file-invoice-dollar'},despesas:{title:'Despesas',icon:'receipt'},clientes:{title:'Clientes',icon:'map-marker-alt'},equipe:{title:'Equipe',icon:'users-gear'},relatorios:{title:'Relatórios',icon:'chart-bar'}};
+const sectionMeta={dashboard:{title:'Dashboard',icon:'chart-pie'},trabalhos:{title:'Trabalhos',icon:'helicopter'},pagamentos:{title:'Pagamentos',icon:'file-invoice-dollar'},despesas:{title:'Despesas',icon:'receipt'},clientes:{title:'Clientes',icon:'map-marker-alt'},equipe:{title:'Equipe',icon:'users-gear'},mapa:{title:'Mapa',icon:'map'},investimentos:{title:'Investimentos',icon:'chart-line'},relatorios:{title:'Relatórios',icon:'chart-bar'}};
 function navTo(sec,liEl){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
@@ -520,6 +577,8 @@ function navTo(sec,liEl){
   if(window.innerWidth<=768)document.getElementById('sidebar').classList.remove('open');
   if(sec==='dashboard')loadDashboard();
   if(sec==='relatorios')initRelatorio();
+  if(sec==='mapa')renderMapa();
+  if(sec==='investimentos')renderInvestimentos();
 }
 
 async function apiGet(e){const r=await fetch(e);if(!r.ok)throw new Error(await r.text());return r.json();}
@@ -529,12 +588,12 @@ async function apiDel(e){const r=await fetch(e,{method:'DELETE'});const d=await 
 
 async function loadAll(){
   try{
-    const[cl,tr,pg,de,dg,op,rp]=await Promise.all([apiGet('/api/clientes'),apiGet('/api/trabalhos'),apiGet('/api/pagamentos'),apiGet('/api/despesas'),apiGet('/api/despesas_gerais'),apiGet('/api/operadores'),apiGet('/api/representantes')]);
-    DB.clientes=cl;DB.trabalhos=tr;DB.pagamentos=pg;DB.despesas=de;DB.despesas_gerais=dg;DB.operadores=op;DB.representantes=rp;
+    const[cl,tr,pg,de,dg,op,rp,inv]=await Promise.all([apiGet('/api/clientes'),apiGet('/api/trabalhos'),apiGet('/api/pagamentos'),apiGet('/api/despesas'),apiGet('/api/despesas_gerais'),apiGet('/api/operadores'),apiGet('/api/representantes'),apiGet('/api/investimentos')]);
+    DB.clientes=cl;DB.trabalhos=tr;DB.pagamentos=pg;DB.despesas=de;DB.despesas_gerais=dg;DB.operadores=op;DB.representantes=rp;DB.investimentos=inv;
     renderAll();loadDashboard();
   }catch(e){toast('Erro ao carregar dados: '+e.message,1);}
 }
-function renderAll(){renderClientes();renderTrabalhos();renderPagamentos();renderDespesas();renderDespesasGerais();renderOperadores();renderRepresentantes();}
+function renderAll(){renderClientes();renderTrabalhos();renderPagamentos();renderDespesas();renderDespesasGerais();renderOperadores();renderRepresentantes();renderInvestimentos();}
 
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const brl=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -637,7 +696,7 @@ function toggleDetail(id, rowEl){
 }
 function renderPagamentos(){
   const d=rows('pagamentos');document.getElementById('badge-pagamentos').textContent=d.length+' reg.';
-  document.getElementById('tbody-pagamentos').innerHTML=!d.length?emptyRow(6):d.map(p=>{const tr=DB.trabalhos.find(t=>t.id===p.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td><strong>${esc(cli?.nome||tr?.servico||'—')}</strong></td><td>${brl(p.valor)}</td><td class="td-muted">${fmtDate(p.data_vencimento)}</td><td class="td-muted">${fmtDate(p.data_pagamento)}</td><td class="td-muted">${esc(p.descricao||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('pagamento','${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('pagamento','${p.id}','pagamento de ${brl(p.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
+  document.getElementById('tbody-pagamentos').innerHTML=!d.length?emptyRow(5):d.map(p=>{const tr=DB.trabalhos.find(t=>t.id===p.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td><strong>${esc(cli?.nome||tr?.servico||'—')}</strong></td><td>${brl(p.valor)}</td><td class="td-muted">${fmtDate(p.data_pagamento)}</td><td class="td-muted">${esc(p.descricao||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('pagamento','${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('pagamento','${p.id}','pagamento de ${brl(p.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
 }
 function renderDespesas(){
   const d=rows('despesas');document.getElementById('badge-despesas').textContent=d.length+' reg.';
@@ -656,6 +715,62 @@ function renderRepresentantes(){
   const d=[...rows('representantes')].sort((a,b)=>{if(a.status!==b.status)return a.status==='Ativo'?-1:1;return(a.nome||'').localeCompare(b.nome||'','pt-BR');});
   document.getElementById('badge-representantes').textContent=d.length+' reg.';
   document.getElementById('tbody-representantes').innerHTML=!d.length?emptyRow(3):d.map(r=>`<tr><td><strong>${esc(r.nome)}</strong></td><td>${statusEquipe(r.status)}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('representante','${r.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('representante','${r.id}','${esc(r.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
+}
+function renderInvestimentos(){
+  const d=[...rows('investimentos')].sort((a,b)=>((b.data||'').localeCompare(a.data||'')));
+  document.getElementById('badge-investimentos').textContent=d.length+' reg.';
+  document.getElementById('tbody-investimentos').innerHTML=!d.length?emptyRow(4):d.map(i=>`<tr>
+    <td class="td-muted">${fmtDate(i.data)}</td>
+    <td>${esc(i.descricao||'—')}</td>
+    <td><strong>${brl(i.valor)}</strong></td>
+    <td><div class="action-btns">
+      <button class="btn-icon btn-edit" onclick="openEdit('investimento','${i.id}')"><i class="fas fa-pen"></i></button>
+      <button class="btn-icon btn-del" onclick="openDel('investimento','${i.id}','investimento ${brl(i.valor)}')"><i class="fas fa-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+}
+
+// ── MAPA ──
+let leafletMap=null, leafletMarkers=[];
+function renderMapa(){
+  const ativos=DB.trabalhos.filter(t=>t.status_trabalho==='Aguardando'||t.status_trabalho==='Em andamento');
+  document.getElementById('badge-mapa').textContent=ativos.length+' trabalho'+(ativos.length!==1?'s':'');
+  // Inicializa mapa na primeira vez
+  if(!leafletMap){
+    leafletMap=L.map('leaflet-map').setView([-15.77972,-47.92972],5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom:19
+    }).addTo(leafletMap);
+  }
+  // Remove marcadores antigos
+  leafletMarkers.forEach(m=>m.remove());
+  leafletMarkers=[];
+  const bounds=[];
+  ativos.forEach(t=>{
+    const cli=DB.clientes.find(c=>c.id===t.cliente_id);
+    if(!cli||!cli.latitude||!cli.longitude)return;
+    const lat=parseFloat(cli.latitude), lng=parseFloat(cli.longitude);
+    const cor=t.status_trabalho==='Em andamento'?'#3498db':'#f39c12';
+    const icon=L.divIcon({
+      className:'',
+      html:`<div style="background:${cor};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>`,
+      iconSize:[14,14],iconAnchor:[7,7]
+    });
+    const op=DB.operadores.find(o=>o.id===t.operador_id);
+    const popup=`<div class="map-popup">
+      <strong>${esc(cli.nome)}</strong>
+      <span>${esc(t.servico||'—')} · ${t.dimensao_ha||'?'} ha</span>
+      <span>Operador: ${esc(op?.nome||'—')}</span>
+      <br><span class="tag ${t.status_trabalho==='Em andamento'?'tag-blue':'tag-orange'}">${esc(t.status_trabalho)}</span>
+    </div>`;
+    const marker=L.marker([lat,lng],{icon}).bindPopup(popup).addTo(leafletMap);
+    leafletMarkers.push(marker);
+    bounds.push([lat,lng]);
+  });
+  if(bounds.length>0) leafletMap.fitBounds(bounds,{padding:[40,40]});
+  // Força resize após mostrar a seção
+  setTimeout(()=>leafletMap.invalidateSize(),100);
 }
 
 function loadDashboard(){
@@ -711,7 +826,7 @@ function calcGanhos(){
 
 function openModal(tipo){
   editState={};
-  document.getElementById('tit-'+tipo).textContent={trabalho:'Novo Trabalho',pagamento:'Registrar Pagamento',despesa:'Nova Despesa de Trabalho',despesa_geral:'Nova Despesa Geral',cliente:'Novo Cliente',operador:'Novo Operador',representante:'Novo Representante'}[tipo];
+  document.getElementById('tit-'+tipo).textContent={trabalho:'Novo Trabalho',pagamento:'Registrar Pagamento',despesa:'Nova Despesa de Trabalho',despesa_geral:'Nova Despesa Geral',cliente:'Novo Cliente',operador:'Novo Operador',representante:'Novo Representante',investimento:'Novo Investimento'}[tipo];
   limparForm(tipo);
   if(tipo==='trabalho'||tipo==='pagamento'||tipo==='despesa')populateSelects(tipo);
   document.getElementById('ov-'+tipo).classList.add('open');
@@ -720,18 +835,19 @@ function closeModal(tipo){document.getElementById('ov-'+tipo).classList.remove('
 
 function openEdit(tipo,id){
   editState={tipo,id};
-  const dbKey=tipo==='despesa_geral'?'despesas_gerais':tipo==='operador'?'operadores':tipo==='representante'?'representantes':tipo+'s';
+  const dbKey=tipo==='despesa_geral'?'despesas_gerais':tipo==='operador'?'operadores':tipo==='representante'?'representantes':tipo==='investimento'?'investimentos':tipo+'s';
   const r=DB[dbKey]?.find(x=>x.id===id);if(!r)return;
-  document.getElementById('tit-'+tipo).textContent={trabalho:'Editar Trabalho',pagamento:'Editar Pagamento',despesa:'Editar Despesa de Trabalho',despesa_geral:'Editar Despesa Geral',cliente:'Editar Cliente',operador:'Editar Operador',representante:'Editar Representante'}[tipo];
+  document.getElementById('tit-'+tipo).textContent={trabalho:'Editar Trabalho',pagamento:'Editar Pagamento',despesa:'Editar Despesa de Trabalho',despesa_geral:'Editar Despesa Geral',cliente:'Editar Cliente',operador:'Editar Operador',representante:'Editar Representante',investimento:'Editar Investimento'}[tipo];
   if(tipo==='trabalho'||tipo==='pagamento'||tipo==='despesa')populateSelects(tipo);
   setTimeout(()=>{
     if(tipo==='cliente'){setVal('c-nome',r.nome);setVal('c-endereco',r.endereco);setVal('c-lat',r.latitude);setVal('c-lng',r.longitude);setVal('c-carteira',r.carteira);setVal('c-descricao',r.descricao);}
     else if(tipo==='trabalho'){setVal('t-cliente',r.cliente_id);setVal('t-servico',r.servico);setVal('t-operador',r.operador_id);setVal('t-representante',r.representante_id||'');setVal('t-dimensao',r.dimensao_ha);setBRL('t-valor-ha',r.valor_ha);setVal('t-data-pedido',r.data_pedido);setVal('t-data-exec',r.data_execucao);setBRL('t-valor',r.valor_total);setBRL('t-ganho-op',r.ganho_operador);setBRL('t-ganho-rep',r.ganho_representante);setVal('t-status',r.status_pagamento);setVal('t-status-trab',r.status_trabalho||'Aguardando');const ha=+r.dimensao_ha||0,perc=percFaixa(ha),pct=(perc*100).toFixed(0)+'%',lbl=ha>0?`${pct} — faixa ${ha<=300?'≤300':ha<=700?'301–700':'>700'} ha`:'';document.getElementById('prev-op').textContent=lbl;document.getElementById('prev-rep').textContent=lbl;}
-    else if(tipo==='pagamento'){setVal('p-trabalho',r.trabalho_id);setBRL('p-valor',r.valor);setVal('p-vencimento',r.data_vencimento);setVal('p-pagamento',r.data_pagamento);setVal('p-descricao',r.descricao);}
+    else if(tipo==='pagamento'){setVal('p-trabalho',r.trabalho_id);setBRL('p-valor',r.valor);setVal('p-pagamento',r.data_pagamento);setVal('p-descricao',r.descricao);}
     else if(tipo==='despesa'){setVal('d-trabalho',r.trabalho_id);setVal('d-data',r.data);setVal('d-tipo',r.tipo);setBRL('d-valor',r.valor);setVal('d-descricao',r.descricao);}
     else if(tipo==='despesa_geral'){setVal('dg-data',r.data);setVal('dg-tipo',r.tipo);setBRL('dg-valor',r.valor);setVal('dg-descricao',r.descricao);}
     else if(tipo==='operador'){setVal('op-nome',r.nome);setVal('op-status',r.status);}
     else if(tipo==='representante'){setVal('rp-nome',r.nome);setVal('rp-status',r.status);}
+    else if(tipo==='investimento'){setVal('inv-data',r.data);setBRL('inv-valor',r.valor);setVal('inv-descricao',r.descricao);}
   },50);
   document.getElementById('ov-'+tipo).classList.add('open');
 }
@@ -745,7 +861,7 @@ function limparForm(tipo){
     despesa:['d-trabalho','d-data','d-valor','d-descricao'],
     despesa_geral:['dg-data','dg-valor','dg-descricao'],
     cliente:['c-nome','c-endereco','c-lat','c-lng','c-descricao'],
-    operador:['op-nome'],
+    investimento:['inv-data','inv-valor','inv-descricao'],
     representante:['rp-nome'],
   }[tipo]||[];
   ids.forEach(id=>setVal(id,''));
@@ -765,13 +881,14 @@ async function salvar(tipo){
   try{
     if(tipo==='cliente'){const nome=document.getElementById('c-nome').value.trim();if(!nome)throw new Error('Nome é obrigatório.');payload={nome,endereco:document.getElementById('c-endereco').value.trim()||null,latitude:parseFloat(document.getElementById('c-lat').value)||null,longitude:parseFloat(document.getElementById('c-lng').value)||null,carteira:document.getElementById('c-carteira').value||null,descricao:document.getElementById('c-descricao').value.trim()||null};}
     else if(tipo==='trabalho'){const cli=document.getElementById('t-cliente').value,op=document.getElementById('t-operador').value,dim=parseFloat(document.getElementById('t-dimensao').value)||0,vha=parseBRL(document.getElementById('t-valor-ha').value);if(!cli)throw new Error('Selecione o cliente.');if(!op)throw new Error('Selecione o operador.');if(!dim)throw new Error('Informe a dimensão em ha.');const total=dim*vha,perc=percFaixa(dim),ganho=total*perc;payload={cliente_id:cli,servico:document.getElementById('t-servico').value.trim()||null,operador_id:op,representante_id:document.getElementById('t-representante').value||null,dimensao_ha:dim,valor_ha:vha,valor_total:total,ganho_operador:ganho,ganho_representante:ganho,data_pedido:document.getElementById('t-data-pedido').value||null,data_execucao:document.getElementById('t-data-exec').value||null,status_pagamento:document.getElementById('t-status').value,status_trabalho:document.getElementById('t-status-trab').value,saldo:total};}
-    else if(tipo==='pagamento'){const tr=document.getElementById('p-trabalho').value,vl=parseBRL(document.getElementById('p-valor').value);if(!tr)throw new Error('Selecione o trabalho.');if(!vl)throw new Error('Informe o valor.');payload={trabalho_id:tr,valor:vl,data_vencimento:document.getElementById('p-vencimento').value||null,data_pagamento:document.getElementById('p-pagamento').value||null,descricao:document.getElementById('p-descricao').value.trim()||null};}
+    else if(tipo==='pagamento'){const tr=document.getElementById('p-trabalho').value,vl=parseBRL(document.getElementById('p-valor').value);if(!tr)throw new Error('Selecione o trabalho.');if(!vl)throw new Error('Informe o valor.');payload={trabalho_id:tr,valor:vl,data_pagamento:document.getElementById('p-pagamento').value||null,descricao:document.getElementById('p-descricao').value.trim()||null};}
     else if(tipo==='despesa'){const tr=document.getElementById('d-trabalho').value,vl=parseBRL(document.getElementById('d-valor').value);if(!tr)throw new Error('Selecione o trabalho.');if(!vl)throw new Error('Informe o valor.');payload={trabalho_id:tr,data:document.getElementById('d-data').value||null,tipo:document.getElementById('d-tipo').value,valor:vl,descricao:document.getElementById('d-descricao').value.trim()||null};}
     else if(tipo==='despesa_geral'){const vl=parseBRL(document.getElementById('dg-valor').value);if(!vl)throw new Error('Informe o valor.');payload={data:document.getElementById('dg-data').value||null,tipo:document.getElementById('dg-tipo').value,valor:vl,descricao:document.getElementById('dg-descricao').value.trim()||null};}
     else if(tipo==='operador'){const nome=document.getElementById('op-nome').value.trim();if(!nome)throw new Error('Nome é obrigatório.');payload={nome,status:document.getElementById('op-status').value};}
     else if(tipo==='representante'){const nome=document.getElementById('rp-nome').value.trim();if(!nome)throw new Error('Nome é obrigatório.');payload={nome,status:document.getElementById('rp-status').value};}
+    else if(tipo==='investimento'){const vl=parseBRL(document.getElementById('inv-valor').value);if(!vl)throw new Error('Informe o valor.');payload={data:document.getElementById('inv-data').value||null,valor:vl,descricao:document.getElementById('inv-descricao').value.trim()||null};}
     btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Salvando...';
-    const epMap={despesa_geral:'/api/despesas_gerais',operador:'/api/operadores',representante:'/api/representantes'};
+    const epMap={despesa_geral:'/api/despesas_gerais',operador:'/api/operadores',representante:'/api/representantes',investimento:'/api/investimentos'};
     const ep=epMap[tipo]||'/api/'+tipo+'s';
     editState.id?await apiPut(ep+'/'+editState.id,payload):await apiPost(ep,payload);
     closeModal(tipo);await loadAll();toast(editState.id?'Registro atualizado!':'Registro salvo!');
@@ -781,7 +898,7 @@ async function salvar(tipo){
 
 async function confirmarDel(){
   if(!delState.tipo)return;
-  try{const epMap={despesa_geral:'/api/despesas_gerais',operador:'/api/operadores',representante:'/api/representantes'};await apiDel((epMap[delState.tipo]||'/api/'+delState.tipo+'s')+'/'+delState.id);closeModal('confirm');await loadAll();toast('Registro excluído.');}
+  try{const epMap={despesa_geral:'/api/despesas_gerais',operador:'/api/operadores',representante:'/api/representantes',investimento:'/api/investimentos'};await apiDel((epMap[delState.tipo]||'/api/'+delState.tipo+'s')+'/'+delState.id);closeModal('confirm');await loadAll();toast('Registro excluído.');}
   catch(e){toast(e.message,1);}
   delState={};
 }
