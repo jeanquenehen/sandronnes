@@ -416,7 +416,15 @@ tbody td{padding:13px 18px;font-size:.88rem;}
     <div class="modal-body"><div class="form-grid">
       <div class="fg full"><label>Trabalho</label><select id="d-trabalho"><option value="">Selecione...</option></select></div>
       <div class="fg"><label>Data</label><input type="date" id="d-data"></div>
-      <div class="fg"><label>Tipo / Categoria</label><select id="d-tipo"><option value="Combustível">Combustível</option><option value="Pedágio">Pedágio</option><option value="Alimentação">Alimentação</option><option value="Hospedagem">Hospedagem</option><option value="Geral">Geral</option></select></div>
+      <div class="fg"><label>Tipo / Categoria</label><select id="d-tipo">
+            <option value="Combustível">Combustível</option>
+            <option value="Pedágio">Pedágio</option>
+            <option value="Alimentação">Alimentação</option>
+            <option value="Hospedagem">Hospedagem</option>
+            <option value="Comissão operador">Comissão operador</option>
+            <option value="Comissão representante">Comissão representante</option>
+            <option value="Geral">Geral</option>
+          </select></div>
       <div class="fg"><label>Valor (R$)</label><input type="text" id="d-valor" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
       <div class="fg full"><label>Descrição</label><textarea id="d-descricao" placeholder="Detalhes da despesa..."></textarea></div>
     </div></div>
