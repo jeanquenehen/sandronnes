@@ -85,10 +85,20 @@ async function recalcularDivisao(trabalhoId) {
             .single();
         if (eCli || !cliente) throw new Error('Cliente não encontrado: ' + (eCli?.message || ''));
 
-        // 3. Calcula divisão: percentual sobre valor_total
-        const valorTotal = parseFloat(trab.valor_total) || 0;
+        // 3. Soma todas as despesas vinculadas ao trabalho
+        const { data: despesas, error: eDesp } = await supabaseAdmin
+            .from('despesas')
+            .select('valor')
+            .eq('trabalho_id', trabalhoId);
+        if (eDesp) throw new Error('Erro ao buscar despesas: ' + eDesp.message);
 
-        // 4. Aplica percentual conforme carteira
+        const totalDespesas = (despesas || []).reduce((s, d) => s + (parseFloat(d.valor) || 0), 0);
+
+        // 4. Base de cálculo: saldo = valor_total − despesas do trabalho
+        const valorTotal = parseFloat(trab.valor_total) || 0;
+        const saldo = valorTotal - totalDespesas;
+
+        // 5. Aplica percentual conforme carteira
         const carteira = (cliente.carteira || '').toLowerCase();
         let percSandro, percRafael;
 
@@ -96,13 +106,12 @@ async function recalcularDivisao(trabalhoId) {
             percSandro = 0.60;
             percRafael = 0.40;
         } else {
-            // carteira Rafael ou qualquer outro valor → 50/50
             percSandro = 0.50;
             percRafael = 0.50;
         }
 
-        const sandroRecebe = parseFloat((valorTotal * percSandro).toFixed(2));
-        const rafaelRecebe = parseFloat((valorTotal * percRafael).toFixed(2));
+        const sandroRecebe = parseFloat((saldo * percSandro).toFixed(2));
+        const rafaelRecebe = parseFloat((saldo * percRafael).toFixed(2));
 
         // 6. Grava no trabalho
         const { error: eUp } = await supabaseAdmin
