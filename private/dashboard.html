@@ -799,6 +799,8 @@ function gerarRelatorio(){
   document.getElementById('rel-receita').textContent=brl(receita);
   document.getElementById('rel-despesas').textContent=brl(despTot);
   document.getElementById('rel-liquido').textContent=brl(liquido);
+  const relLiqEl=document.getElementById('rel-liquido').closest('.kpi');
+  if(relLiqEl){relLiqEl.style.background=liquido<0?'linear-gradient(135deg,#e74c3c,#c0392b)':'linear-gradient(135deg,#2ecc71,#27ae60)';}
 
   // Ganhos por operador
   const opMap={};trabs.forEach(t=>{const op=DB.operadores.find(o=>o.id===t.operador_id);if(!op)return;if(!opMap[op.id])opMap[op.id]={nome:op.nome,qtd:0,ha:0,ganho:0};opMap[op.id].qtd++;opMap[op.id].ha+=(+t.dimensao_ha||0);opMap[op.id].ganho+=(+t.ganho_operador||0);});
