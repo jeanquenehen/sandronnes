@@ -208,7 +208,7 @@ tbody td{padding:13px 18px;font-size:.88rem;}
   <div class="section active" id="sec-dashboard">
     <div class="kpi-grid">
       <div class="kpi accent"><h4>Faturamento do mês</h4><div class="val" id="kpi-fat">R$ 0</div><div class="sub">Pagamentos recebidos no mês</div></div>
-      <div class="kpi"><h4>Trabalhos ativos</h4><div class="val" id="kpi-ativos">0</div><div class="sub">Em andamento</div></div>
+      <div class="kpi"><h4>Aguardando</h4><div class="val" id="kpi-ativos">0</div><div class="sub">Trabalhos a iniciar</div></div>
       <div class="kpi"><h4>Saldo a receber</h4><div class="val" id="kpi-saldo">R$ 0</div><div class="sub">Parcelas em aberto</div></div>
       <div class="kpi"><h4>Despesas do mês</h4><div class="val" id="kpi-desp">R$ 0</div><div class="sub">Operacionais + gerais</div></div>
     </div>
@@ -216,7 +216,7 @@ tbody td{padding:13px 18px;font-size:.88rem;}
       <div class="kpi"><h4>Hectares voados</h4><div class="val" id="kpi-ha">0 ha</div><div class="sub">Acumulado do mês</div></div>
       <div class="kpi"><h4>Ganhos operadores</h4><div class="val" id="kpi-op">R$ 0</div><div class="sub">Mês corrente</div></div>
       <div class="kpi"><h4>Ganhos representantes</h4><div class="val" id="kpi-rep">R$ 0</div><div class="sub">Mês corrente</div></div>
-      <div class="kpi"><h4>Trabalhos ativos</h4><div class="val" id="kpi-ativos">0</div><div class="sub">Em andamento</div></div>
+      <div class="kpi"><h4>Em andamento</h4><div class="val" id="kpi-em-andamento">0</div><div class="sub">Trabalhos em curso</div></div>
     </div>
     <div class="charts-grid">
       <div class="chart-card"><h4>Faturamento — últimos 6 meses</h4><canvas id="chart-fat" height="200"></canvas></div>
@@ -800,7 +800,9 @@ function loadDashboard(){
   document.getElementById('kpi-fat').textContent=brl(resultadoMes);
   const kpiFatEl=document.getElementById('kpi-fat').closest('.kpi');
   if(kpiFatEl){kpiFatEl.style.background=resultadoMes<0?'linear-gradient(135deg,#e74c3c,#c0392b)':'linear-gradient(135deg,#2ecc71,#27ae60)';}
-  document.getElementById('kpi-ativos').textContent=DB.trabalhos.filter(t=>t.status_trabalho==='Em andamento').length;
+  document.getElementById('kpi-ativos').textContent=DB.trabalhos.filter(t=>t.status_trabalho==='Aguardando').length;
+  const emAndamento=document.getElementById('kpi-em-andamento');
+  if(emAndamento) emAndamento.textContent=DB.trabalhos.filter(t=>t.status_trabalho==='Em andamento').length;
   const totalPago=DB.pagamentos.reduce((s,p)=>s+(+p.valor||0),0);
   const totalFaturado=DB.trabalhos.reduce((s,t)=>s+(+t.valor_total||0),0);
   document.getElementById('kpi-saldo').textContent=brl(Math.max(0,totalFaturado-totalPago));
