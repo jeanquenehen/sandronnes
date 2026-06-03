@@ -24,16 +24,74 @@ const supabaseAdmin = createClient(
 app.use(express.json());
 app.use(cookieParser());
 
+// ── HELPERS DE COOKIE ────────────────────────────────────────────────────────
+const TRINTA_DIAS = 30 * 24 * 60 * 60 * 1000;
+
+function setCookies(res, session) {
+    const cookieOpts = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/'
+    };
+    // access_token: expira conforme o Supabase define (normalmente 1h)
+    res.cookie('sb-access-token', session.access_token, {
+        ...cookieOpts,
+        maxAge: (session.expires_in || 3600) * 1000
+    });
+    // refresh_token: dura 30 dias — usado para renovar o access_token
+    res.cookie('sb-refresh-token', session.refresh_token, {
+        ...cookieOpts,
+        maxAge: TRINTA_DIAS
+    });
+}
+
+function clearCookies(res) {
+    res.clearCookie('sb-access-token',  { path: '/' });
+    res.clearCookie('sb-refresh-token', { path: '/' });
+}
+
 function getToken(req) {
     return req.cookies['sb-access-token'] || null;
 }
 
+function getRefreshToken(req) {
+    return req.cookies['sb-refresh-token'] || null;
+}
+
 async function requireAuth(req, res, next) {
-    const token = getToken(req);
-    if (!token) return res.status(401).json({ success: false, message: 'Não autenticado.' });
+    let token = getToken(req);
+
+    // Se não tem access_token mas tem refresh_token, renova automaticamente
+    if (!token) {
+        const refreshToken = getRefreshToken(req);
+        if (!refreshToken) {
+            return res.status(401).json({ success: false, message: 'Não autenticado.' });
+        }
+        try {
+            const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+            if (error || !data.session) throw new Error('Refresh inválido');
+            setCookies(res, data.session);
+            token = data.session.access_token;
+        } catch {
+            clearCookies(res);
+            return res.status(401).json({ success: false, message: 'Sessão expirada.' });
+        }
+    }
+
     try {
         const { data: { user }, error } = await supabase.auth.getUser(token);
-        if (error || !user) throw new Error('Sessão inválida');
+
+        // access_token expirado mas refresh_token ainda válido — renova
+        if (error || !user) {
+            const refreshToken = getRefreshToken(req);
+            if (!refreshToken) throw new Error('Sem refresh token');
+            const { data: refreshed, error: rErr } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+            if (rErr || !refreshed.session) throw new Error('Não foi possível renovar sessão');
+            setCookies(res, refreshed.session);
+            token = refreshed.session.access_token;
+        }
+
         req.user = user;
         req.db = createClient(
             process.env.SUPABASE_URL,
@@ -51,6 +109,7 @@ async function requireAuth(req, res, next) {
         );
         next();
     } catch {
+        clearCookies(res);
         return res.status(401).json({ success: false, message: 'Sessão expirada.' });
     }
 }
@@ -375,13 +434,7 @@ app.post('/api/login', async (req, res) => {
     try {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        res.cookie('sb-access-token', data.session.access_token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: data.session.expires_in * 1000,
-            sameSite: 'lax',
-            path: '/'
-        });
+        setCookies(res, data.session);
         return res.json({ success: true, redirect: '/sistema' });
     } catch (e) {
         return res.status(400).json({ success: false, message: e.message });
@@ -389,25 +442,43 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.get('/api/user', async (req, res) => {
-    const token = getToken(req);
-    if (!token) return res.status(401).json({ authenticated: false });
+    let token = getToken(req);
+
+    // Tenta renovar com refresh_token se access_token ausente
+    if (!token) {
+        const refreshToken = getRefreshToken(req);
+        if (!refreshToken) return res.status(401).json({ authenticated: false });
+        try {
+            const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+            if (error || !data.session) throw new Error();
+            setCookies(res, data.session);
+            token = data.session.access_token;
+        } catch {
+            clearCookies(res);
+            return res.status(401).json({ authenticated: false });
+        }
+    }
+
     try {
         const { data: { user }, error } = await supabase.auth.getUser(token);
         if (error || !user) {
-            const payload = JSON.parse(
-                Buffer.from(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'), 'base64').toString()
-            );
-            if (payload?.email) return res.json({ authenticated: true, user: { email: payload.email } });
-            throw new Error('Sessão inválida');
+            // Tenta renovar com refresh_token
+            const refreshToken = getRefreshToken(req);
+            if (!refreshToken) throw new Error();
+            const { data: refreshed, error: rErr } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+            if (rErr || !refreshed.session) throw new Error();
+            setCookies(res, refreshed.session);
+            return res.json({ authenticated: true, user: { email: refreshed.session.user.email } });
         }
         return res.json({ authenticated: true, user: { email: user.email } });
     } catch {
+        clearCookies(res);
         return res.status(401).json({ authenticated: false });
     }
 });
 
 app.post('/api/logout', (req, res) => {
-    res.clearCookie('sb-access-token', { path: '/' });
+    clearCookies(res);
     return res.json({ success: true });
 });
 
