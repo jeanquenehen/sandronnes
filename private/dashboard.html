@@ -1153,75 +1153,78 @@ async function exportarPDF(){
     const rowsSoc=[...document.querySelectorAll('#rel-tbody-socios tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim().replace(/^["'"'−\-]+\s*/,'')));
     if(rowsSoc.length) addTabela('Divisão entre sócios',['Sócio','Entradas','Despesas Gerais','Total'],rowsSoc);
 
-    // ── Tabela trabalhos do período ──
+    // ── Tabela trabalhos do período (mesmo padrão de addTabela) ──
     const trabsPeriodo=[...document.querySelectorAll('#rel-tbody-trabalhos tr')]
       .filter(tr=>tr.querySelectorAll('td').length===8&&!tr.getAttribute('style')?.includes('input-bg'));
 
     if(trabsPeriodo.length){
       if(y>240){doc.addPage();y=margin;}
+      const tableW=W-margin*2;
+      const cw=tableW/5;
+
+      // Título
       doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(44,62,80);
       doc.text('Trabalhos no período',margin,y);y+=4;
-      const tableW=W-margin*2;
-      const cols=['Cliente','Serviço','Valor','Despesas','Saldo'];
-      const cws=[50,45,30,30,27]; // larguras em mm
+      const tableStartY=y;
 
-      // Header
+      // Header verde
       doc.setFillColor(46,204,113);doc.rect(margin,y,tableW,7,'F');
       doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
-      let cx=margin;
-      cols.forEach((h,i)=>{doc.text(h,cx+2,y+5);cx+=cws[i];});
-      const headerY=y; y+=7;
+      ['Cliente','Serviço','Valor','Despesas','Saldo'].forEach((h,i)=>doc.text(h,margin+i*cw+2,y+5));
+      y+=7;
 
       trabsPeriodo.forEach((tr,ri)=>{
-        if(y>265){doc.addPage();y=margin;}
+        if(y>260){doc.addPage();y=margin;}
         const tds=[...tr.querySelectorAll('td')].map(td=>td.textContent.trim());
-        // Cliente, Serviço, Valor, Despesas, Saldo
         const rowData=[tds[0],tds[1],tds[3],tds[4],tds[5]];
+
+        // Linha principal — mesmo alternado do addTabela
         doc.setFillColor(ri%2===0?255:248,ri%2===0?255:250,ri%2===0?255:252);
         doc.rect(margin,y,tableW,6,'F');
         doc.setTextColor(44,62,80);doc.setFontSize(8);doc.setFont('helvetica','normal');
-        cx=margin;
         rowData.forEach((cell,i)=>{
-          const txt=String(cell||'—').substring(0,Math.floor(cws[i]/2.2));
-          doc.text(txt,cx+2,y+4.5);cx+=cws[i];
+          const txt=doc.splitTextToSize(String(cell||'—'),cw-4)[0]||'—';
+          doc.text(txt,margin+i*cw+2,y+4.5);
         });
         y+=6;
 
-        // Sub-linhas: pagamentos deste trabalho
+        // Sub-bloco pagamentos + despesas
         const trabId=tr.getAttribute('data-id');
         const pags=trabId?DB.pagamentos.filter(p=>p.trabalho_id===trabId):[];
         const desps=trabId?DB.despesas.filter(d=>d.trabalho_id===trabId):[];
-
         if(pags.length||desps.length){
-          if(y>260){doc.addPage();y=margin;}
-          // Cabeçalho sub
-          doc.setFillColor(240,248,244);doc.rect(margin,y,tableW,5,'F');
-          doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(46,204,113);
+          if(y>255){doc.addPage();y=margin;}
+          // Cabeçalho sub (mesmo verde mas mais claro)
+          doc.setFillColor(232,248,240);doc.rect(margin,y,tableW,5,'F');
+          doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(39,174,96);
           doc.text('Pagamentos',margin+2,y+3.5);
           doc.text('Despesas',margin+tableW/2+2,y+3.5);
           y+=5;
-
-          const maxRows=Math.max(pags.length,desps.length);
-          for(let r=0;r<maxRows;r++){
+          const maxR=Math.max(pags.length,desps.length);
+          for(let r=0;r<maxR;r++){
             if(y>268){doc.addPage();y=margin;}
-            doc.setFillColor(250,253,251);doc.rect(margin,y,tableW,5,'F');
+            doc.setFillColor(245,252,248);doc.rect(margin,y,tableW,5,'F');
             doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(44,62,80);
             if(pags[r]){
               doc.text(fmtDate(pags[r].data_pagamento),margin+2,y+3.5);
-              doc.text(brl(pags[r].valor),margin+tableW/2-20,y+3.5);
+              doc.setTextColor(46,204,113);
+              doc.text(brl(pags[r].valor),margin+tableW/2-22,y+3.5);
+              doc.setTextColor(44,62,80);
             }
             if(desps[r]){
-              doc.text(String(desps[r].tipo||'').substring(0,18),margin+tableW/2+2,y+3.5);
-              doc.text(brl(desps[r].valor),W-margin-18,y+3.5);
+              doc.text(String(desps[r].tipo||'—').substring(0,20),margin+tableW/2+2,y+3.5);
+              doc.setTextColor(231,76,60);
+              doc.text('−'+brl(desps[r].valor),W-margin-24,y+3.5);
+              doc.setTextColor(44,62,80);
             }
             y+=5;
           }
         }
       });
 
-      // Borda da tabela principal
+      // Borda fina igual ao addTabela
       doc.setDrawColor(200,210,220);doc.setLineWidth(0.3);
-      doc.rect(margin,headerY,tableW,y-headerY,'S');
+      doc.rect(margin,tableStartY,tableW,y-tableStartY,'S');
       y+=12;
     }
 
