@@ -423,6 +423,8 @@ tbody td{padding:13px 18px;font-size:.88rem;}
             <option value="Hospedagem">Hospedagem</option>
             <option value="Comissão operador">Comissão operador</option>
             <option value="Comissão representante">Comissão representante</option>
+            <option value="Ajudante">Ajudante</option>
+            <option value="Impostos">Impostos</option>
             <option value="Geral">Geral</option>
           </select></div>
       <div class="fg"><label>Valor (R$)</label><input type="text" id="d-valor" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
@@ -754,7 +756,7 @@ function limparForm(tipo){
   if(tipo==='representante')setVal('rp-status','Ativo');
 }
 function populateSelects(tipo){
-  if(tipo==='pagamento'||tipo==='despesa'){const sel=document.getElementById(tipo==='pagamento'?'p-trabalho':'d-trabalho');if(sel)sel.innerHTML='<option value="">Selecione...</option>'+DB.trabalhos.map(t=>{const cli=DB.clientes.find(c=>c.id===t.cliente_id);return`<option value="${t.id}">${esc(cli?.nome||'—')} — ${esc(t.servico||'')} (${fmtDate(t.data_execucao)})</option>`;}).join('');}
+  if(tipo==='pagamento'||tipo==='despesa'){const sel=document.getElementById(tipo==='pagamento'?'p-trabalho':'d-trabalho');if(sel){const lista=tipo==='pagamento'?DB.trabalhos.filter(t=>t.status_trabalho!=='Concluído'):DB.trabalhos;sel.innerHTML='<option value="">Selecione...</option>'+lista.map(t=>{const cli=DB.clientes.find(c=>c.id===t.cliente_id);return`<option value="${t.id}">${esc(cli?.nome||'—')} — ${esc(t.servico||'')} (${fmtDate(t.data_execucao)})</option>`;}).join('');}}
   if(tipo==='trabalho'){document.getElementById('t-cliente').innerHTML='<option value="">Selecione...</option>'+DB.clientes.map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');document.getElementById('t-operador').innerHTML='<option value="">Selecione...</option>'+DB.operadores.filter(o=>o.status==='Ativo').map(o=>`<option value="${o.id}">${esc(o.nome)}</option>`).join('');document.getElementById('t-representante').innerHTML='<option value="">(nenhum)</option>'+DB.representantes.filter(r=>r.status==='Ativo').map(r=>`<option value="${r.id}">${esc(r.nome)}</option>`).join('');}
 }
 
