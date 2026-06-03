@@ -738,7 +738,7 @@ function renderMapa(){
   document.getElementById('badge-mapa').textContent=ativos.length+' trabalho'+(ativos.length!==1?'s':'');
   // Inicializa mapa na primeira vez
   if(!leafletMap){
-    leafletMap=L.map('leaflet-map').setView([-15.77972,-47.92972],5);
+    leafletMap=L.map('leaflet-map').setView([-15.77972,-47.92972],15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
       attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom:19
