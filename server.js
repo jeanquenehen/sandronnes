@@ -226,7 +226,35 @@ app.post('/api/trabalhos', requireAuth, async (req, res) => {
         const { data, error } = await req.db.from('trabalhos').insert(payload).select().single();
         if (error) throw error;
         res.status(201).json(data);
-        // Recalcula após criar (ainda sem despesas, mas grava divisão inicial)
+
+        // Lança despesas automáticas de comissão em background
+        const dataRef = data.data_execucao || data.data_pedido || new Date().toISOString().slice(0,10);
+
+        // 1. Comissão do operador
+        const ganhoOp = parseFloat(data.ganho_operador) || 0;
+        if (ganhoOp > 0) {
+            await supabaseAdmin.from('despesas').insert({
+                trabalho_id: data.id,
+                data: dataRef,
+                tipo: 'Comissão operador',
+                valor: ganhoOp,
+                descricao: 'Lançado automaticamente ao criar trabalho'
+            });
+        }
+
+        // 2. Comissão do representante (somente se houver)
+        const ganhoRep = parseFloat(data.ganho_representante) || 0;
+        if (ganhoRep > 0 && data.representante_id) {
+            await supabaseAdmin.from('despesas').insert({
+                trabalho_id: data.id,
+                data: dataRef,
+                tipo: 'Comissão representante',
+                valor: ganhoRep,
+                descricao: 'Lançado automaticamente ao criar trabalho'
+            });
+        }
+
+        // Recalcula divisão sócios após lançar as despesas
         recalcularDivisao(data.id);
     } catch (e) {
         res.status(400).json({ success: false, message: e.message });
