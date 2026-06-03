@@ -1046,24 +1046,29 @@ async function exportarPDF(){
     const addTabela=(titulo,headers,rows)=>{
       if(y>250){doc.addPage();y=margin;}
       doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(44,62,80);
-      doc.text(titulo,margin,y); y+=6;
+      doc.text(titulo,margin,y); y+=4;
+      const tableW=W-margin*2;
+      const tableStartY=y;
       // Header
       doc.setFillColor(46,204,113);
-      doc.rect(margin,y,W-margin*2,7,'F');
+      doc.rect(margin,y,tableW,7,'F');
       doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold');
-      const cw=(W-margin*2)/headers.length;
+      const cw=tableW/headers.length;
       headers.forEach((h,i)=>doc.text(h,margin+i*cw+2,y+5));
       y+=7;
       // Rows
       rows.forEach((row,ri)=>{
         if(y>270){doc.addPage();y=margin;}
         doc.setFillColor(ri%2===0?255:248,ri%2===0?255:250,ri%2===0?255:252);
-        doc.rect(margin,y,W-margin*2,6,'F');
+        doc.rect(margin,y,tableW,6,'F');
         doc.setTextColor(44,62,80); doc.setFontSize(8); doc.setFont('helvetica','normal');
         row.forEach((cell,i)=>doc.text(String(cell||'—'),margin+i*cw+2,y+4.5));
         y+=6;
       });
-      y+=12; // margem maior após cada tabela
+      // Borda fina contornando a tabela inteira
+      doc.setDrawColor(200,210,220); doc.setLineWidth(0.3);
+      doc.rect(margin,tableStartY,tableW,y-tableStartY,'S');
+      y+=12;
     };
 
     // ── Tabela operadores ──
@@ -1076,7 +1081,7 @@ async function exportarPDF(){
 
     // ── Tabela sócios — "Desp. gerais" resumido para caber ──
     const rowsSoc=[...document.querySelectorAll('#rel-tbody-socios tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim()));
-    if(rowsSoc.length) addTabela('Divisão entre sócios',['Sócio','Trabalhos (líq.)','Desp. gerais (−50%)','Total'],rowsSoc);
+    if(rowsSoc.length) addTabela('Divisão entre sócios',['Sócio','Entradas','Despesas Gerais','Total'],rowsSoc);
 
     // ── Rodapé ──
     const pages=doc.getNumberOfPages();
