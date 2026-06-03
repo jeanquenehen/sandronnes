@@ -1046,12 +1046,15 @@ async function exportarPDF(){
     const addTabela=(titulo,headers,rows)=>{
       if(y>250){doc.addPage();y=margin;}
       doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(44,62,80);
-      doc.text(titulo,margin,y); y+=4;
+      doc.text(titulo,margin,y); y+=2;
       const tableW=W-margin*2;
       const tableStartY=y;
-      // Header
+      const r=2; // border-radius
+      // Header com cantos superiores arredondados
       doc.setFillColor(46,204,113);
-      doc.rect(margin,y,tableW,7,'F');
+      doc.roundedRect(margin,y,tableW,7,r,r,'F');
+      // Cobre os raio dos cantos inferiores do header (para ficar reto embaixo)
+      doc.rect(margin,y+3,tableW,4,'F');
       doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold');
       const cw=tableW/headers.length;
       headers.forEach((h,i)=>doc.text(h,margin+i*cw+2,y+5));
@@ -1060,14 +1063,21 @@ async function exportarPDF(){
       rows.forEach((row,ri)=>{
         if(y>270){doc.addPage();y=margin;}
         doc.setFillColor(ri%2===0?255:248,ri%2===0?255:250,ri%2===0?255:252);
-        doc.rect(margin,y,tableW,6,'F');
+        const isLast=ri===rows.length-1;
+        if(isLast){
+          // Última linha com cantos inferiores arredondados
+          doc.roundedRect(margin,y,tableW,6,r,r,'F');
+          doc.rect(margin,y,tableW,3,'F');
+        } else {
+          doc.rect(margin,y,tableW,6,'F');
+        }
         doc.setTextColor(44,62,80); doc.setFontSize(8); doc.setFont('helvetica','normal');
         row.forEach((cell,i)=>doc.text(String(cell||'—'),margin+i*cw+2,y+4.5));
         y+=6;
       });
-      // Borda fina contornando a tabela inteira
+      // Borda arredondada contornando a tabela inteira
       doc.setDrawColor(200,210,220); doc.setLineWidth(0.3);
-      doc.rect(margin,tableStartY,tableW,y-tableStartY,'S');
+      doc.roundedRect(margin,tableStartY,tableW,y-tableStartY,r,r,'S');
       y+=12;
     };
 
