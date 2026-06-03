@@ -776,7 +776,7 @@ function renderMapa(){
 
 function loadDashboard(){
   const now=new Date(),mes=now.getMonth(),ano=now.getFullYear();
-  const doMes=arr=>arr.filter(r=>{const d=new Date((r.data_execucao||r.data||r.data_vencimento||r.data_pagamento||'')+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===ano;});
+  const doMes=arr=>arr.filter(r=>{const d=new Date((r.data_execucao||r.data||r.data_pagamento||'')+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===ano;});
   const trabMes=doMes(DB.trabalhos);
   // Resultado do mês = pagamentos recebidos no mês − despesas do mês
   const fatMes=DB.pagamentos.filter(p=>p.data_pagamento&&(()=>{const d=new Date(p.data_pagamento+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===ano;})()).reduce((s,p)=>s+(+p.valor||0),0);
@@ -858,7 +858,7 @@ function setVal(id,v){const el=document.getElementById(id);if(el)el.value=v??'';
 function limparForm(tipo){
   const ids={
     trabalho:['t-cliente','t-servico','t-operador','t-representante','t-dimensao','t-valor-ha','t-data-pedido','t-data-exec','t-valor','t-ganho-op','t-ganho-rep'],
-    pagamento:['p-trabalho','p-valor','p-vencimento','p-pagamento','p-descricao'],
+    pagamento:['p-trabalho','p-valor','p-pagamento','p-descricao'],
     despesa:['d-trabalho','d-data','d-valor','d-descricao'],
     despesa_geral:['dg-data','dg-valor','dg-descricao'],
     cliente:['c-nome','c-endereco','c-lat','c-lng','c-descricao'],
