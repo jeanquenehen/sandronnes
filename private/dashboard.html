@@ -384,6 +384,20 @@ tbody td{padding:13px 18px;font-size:.88rem;}
         <tbody id="rel-tbody-socios"></tbody>
       </table>
     </div>
+    <div class="table-card" style="margin-top:18px">
+      <div class="table-head"><h3><i class="fas fa-helicopter" style="color:var(--primary);margin-right:6px"></i>Trabalhos no período</h3><span class="badge" id="badge-rel-trabalhos">0</span></div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Cliente</th><th>Serviço</th><th>Dimensão</th><th>Valor</th><th>Despesas</th><th>Saldo</th><th>Recebido</th><th>Situação</th></tr></thead>
+        <tbody id="rel-tbody-trabalhos"></tbody>
+      </table></div>
+    </div>
+    <div class="table-card" style="margin-top:18px">
+      <div class="table-head"><h3><i class="fas fa-building" style="color:var(--info);margin-right:6px"></i>Despesas gerais no período</h3><span class="badge" id="badge-rel-despsger">0</span></div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr></thead>
+        <tbody id="rel-tbody-despsger"></tbody>
+      </table></div>
+    </div>
     </div><!-- fim rel-conteudo -->
   </div>
 
@@ -973,6 +987,60 @@ function gerarRelatorio(){
   charts.relrd=new Chart(document.getElementById('chart-rel-recdesp'),{type:'bar',data:{labels:['Receita','Despesas','Líquido'],datasets:[{data:[receita,despTot,liquido],backgroundColor:['rgba(46,204,113,.7)','rgba(231,76,60,.7)','rgba(52,152,219,.7)'],borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$ '+v.toLocaleString('pt-BR')}}}}});
   const byStatus={};trabs.forEach(t=>{const s=t.status_pagamento||'—';byStatus[s]=(byStatus[s]||0)+1;});
   charts.reltr=new Chart(document.getElementById('chart-rel-trabalhos'),{type:'doughnut',data:{labels:Object.keys(byStatus),datasets:[{data:Object.values(byStatus),backgroundColor:['rgba(46,204,113,.8)','rgba(52,152,219,.8)','rgba(243,156,18,.8)','rgba(231,76,60,.8)'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+
+  // ── Tabela trabalhos do período ──
+  document.getElementById('badge-rel-trabalhos').textContent=trabs.length+' reg.';
+  document.getElementById('rel-tbody-trabalhos').innerHTML=!trabs.length
+    ?emptyRow(8,'Nenhum trabalho no período.')
+    :trabs.map(t=>{
+      const cli=DB.clientes.find(c=>c.id===t.cliente_id);
+      const despT=DB.despesas.filter(d=>d.trabalho_id===t.id).reduce((s,d)=>s+(+d.valor||0),0);
+      const receb=DB.pagamentos.filter(p=>p.trabalho_id===t.id).reduce((s,p)=>s+(+p.valor||0),0);
+      const saldoT=(+t.valor_total||0)-despT;
+      // Sub-linhas de pagamentos e despesas
+      const pagsRows=DB.pagamentos.filter(p=>p.trabalho_id===t.id);
+      const despRows=DB.despesas.filter(d=>d.trabalho_id===t.id);
+      const subHtml=pagsRows.length||despRows.length?`
+        <tr style="background:var(--input-bg)">
+          <td colspan="8" style="padding:8px 18px 12px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div>
+                <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Pagamentos</div>
+                ${pagsRows.length
+                  ?pagsRows.map(p=>`<div style="font-size:.8rem;display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)"><span>${fmtDate(p.data_pagamento)}&nbsp;${esc(p.descricao||'')}</span><span style="color:var(--primary);font-weight:600">${brl(p.valor)}</span></div>`).join('')
+                  :`<div style="font-size:.8rem;color:var(--muted);font-style:italic">Nenhum pagamento</div>`}
+              </div>
+              <div>
+                <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Despesas</div>
+                ${despRows.length
+                  ?despRows.map(d=>`<div style="font-size:.8rem;display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)"><span>${esc(d.tipo||'')}&nbsp;${esc(d.descricao||'')}</span><span style="color:var(--danger);font-weight:600">− ${brl(d.valor)}</span></div>`).join('')
+                  :`<div style="font-size:.8rem;color:var(--muted);font-style:italic">Nenhuma despesa</div>`}
+              </div>
+            </div>
+          </td>
+        </tr>`:'';
+      return`<tr style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none'">
+        <td><strong>${esc(cli?.nome||'—')}</strong></td>
+        <td class="td-muted">${esc(t.servico||'—')}</td>
+        <td class="td-muted">${t.dimensao_ha?t.dimensao_ha+' ha':'—'}</td>
+        <td>${brl(t.valor_total)}</td>
+        <td style="color:var(--danger);font-size:.82rem">${despT>0?'− '+brl(despT):'—'}</td>
+        <td style="font-weight:600;font-size:.82rem;${saldoT<0?'color:var(--danger)':'color:var(--primary)'}">${brl(saldoT)}</td>
+        <td style="color:var(--primary);font-size:.82rem">${receb>0?brl(receb):'—'}</td>
+        <td>${statusTrabTag(t.status_trabalho)}</td>
+      </tr>${subHtml}`;
+    }).join('');
+
+  // ── Tabela despesas gerais do período ──
+  document.getElementById('badge-rel-despsger').textContent=despsGer.length+' reg.';
+  document.getElementById('rel-tbody-despsger').innerHTML=!despsGer.length
+    ?emptyRow(4,'Nenhuma despesa geral no período.')
+    :despsGer.map(d=>`<tr>
+        <td class="td-muted">${fmtDate(d.data)}</td>
+        <td><span class="tag tag-blue">${esc(d.tipo||'—')}</span></td>
+        <td>${esc(d.descricao||'—')}</td>
+        <td><strong>${brl(d.valor)}</strong></td>
+      </tr>`).join('');
 }
 
 async function exportarPDF(){
@@ -1092,6 +1160,16 @@ async function exportarPDF(){
     // ── Tabela sócios — limpa caracteres extras ao extrair células ──
     const rowsSoc=[...document.querySelectorAll('#rel-tbody-socios tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim().replace(/^["'"'−\-]+\s*/,'')));
     if(rowsSoc.length) addTabela('Divisão entre sócios',['Sócio','Entradas','Despesas Gerais','Total'],rowsSoc);
+
+    // ── Tabela trabalhos do período ──
+    const rowsTrab=[...document.querySelectorAll('#rel-tbody-trabalhos tr')]
+      .filter(tr=>tr.querySelectorAll('td').length===8&&!tr.getAttribute('style')?.includes('input-bg'))
+      .map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim()));
+    if(rowsTrab.length) addTabela('Trabalhos no período',['Cliente','Serviço','Dim.','Valor','Despesas','Saldo','Recebido','Situação'],rowsTrab);
+
+    // ── Tabela despesas gerais do período ──
+    const rowsDG=[...document.querySelectorAll('#rel-tbody-despsger tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim()));
+    if(rowsDG.length) addTabela('Despesas gerais no período',['Data','Tipo','Descrição','Valor'],rowsDG);
 
     // ── Rodapé ──
     const pages=doc.getNumberOfPages();
