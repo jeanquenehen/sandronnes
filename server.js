@@ -41,7 +41,12 @@ async function requireAuth(req, res, next) {
             {
                 db: { schema: 'Sandronnes' },
                 auth: { persistSession: false, autoRefreshToken: false },
-                global: { headers: { Authorization: `Bearer ${token}` } }
+                global: {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        apikey: process.env.SUPABASE_ANON_KEY
+                    }
+                }
             }
         );
         next();
@@ -307,10 +312,10 @@ crudRoutes(app, 'despesas', [
     'trabalho_id', 'data', 'tipo', 'valor', 'descricao'
 ]);
 
-// Investimentos — rota dedicada com supabaseAdmin para evitar bloqueio de RLS
+// Investimentos
 app.get('/api/investimentos', requireAuth, async (req, res) => {
     try {
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await req.db
             .from('investimentos').select('*').order('criado_em', { ascending: false });
         if (error) throw error;
         res.json(data);
@@ -322,7 +327,7 @@ app.get('/api/investimentos', requireAuth, async (req, res) => {
 app.post('/api/investimentos', requireAuth, async (req, res) => {
     try {
         const payload = filtrarCampos(req.body, ['data', 'valor', 'descricao']);
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await req.db
             .from('investimentos').insert(payload).select().single();
         if (error) throw error;
         res.status(201).json(data);
@@ -334,7 +339,7 @@ app.post('/api/investimentos', requireAuth, async (req, res) => {
 app.put('/api/investimentos/:id', requireAuth, async (req, res) => {
     try {
         const payload = filtrarCampos(req.body, ['data', 'valor', 'descricao']);
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await req.db
             .from('investimentos').update(payload).eq('id', req.params.id).select().single();
         if (error) throw error;
         res.json(data);
@@ -345,7 +350,7 @@ app.put('/api/investimentos/:id', requireAuth, async (req, res) => {
 });
 app.delete('/api/investimentos/:id', requireAuth, async (req, res) => {
     try {
-        const { error } = await supabaseAdmin
+        const { error } = await req.db
             .from('investimentos').delete().eq('id', req.params.id);
         if (error) throw error;
         res.json({ success: true });
