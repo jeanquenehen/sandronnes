@@ -958,13 +958,13 @@ function gerarRelatorio(){
     <tr>
       <td><strong>Sandro</strong></td>
       <td style="${corValor(sandroTrabs)}">${brl(sandroTrabs)}</td>
-      <td style="color:var(--danger)">− ${brl(sandroDesp)}</td>
+      <td style="color:var(--danger)">${brl(sandroDesp)}</td>
       <td style="font-weight:700;font-size:.95rem;${corValor(sandroTotal)}">${brl(sandroTotal)}</td>
     </tr>
     <tr>
       <td><strong>Rafael</strong></td>
       <td style="${corValor(rafaelTrabs)}">${brl(rafaelTrabs)}</td>
-      <td style="color:var(--danger)">− ${brl(rafaelDesp)}</td>
+      <td style="color:var(--danger)">${brl(rafaelDesp)}</td>
       <td style="font-weight:700;font-size:.95rem;${corValor(rafaelTotal)}">${brl(rafaelTotal)}</td>
     </tr>`;
 
@@ -1089,8 +1089,8 @@ async function exportarPDF(){
     const rowsRep=[...document.querySelectorAll('#rel-tbody-rep tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim()));
     if(rowsRep.length) addTabela('Ganhos por representante',['Representante','Trabalhos','Hectares','Ganho total'],rowsRep);
 
-    // ── Tabela sócios — "Desp. gerais" resumido para caber ──
-    const rowsSoc=[...document.querySelectorAll('#rel-tbody-socios tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim()));
+    // ── Tabela sócios — limpa caracteres extras ao extrair células ──
+    const rowsSoc=[...document.querySelectorAll('#rel-tbody-socios tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim().replace(/^["'"'−\-]+\s*/,'')));
     if(rowsSoc.length) addTabela('Divisão entre sócios',['Sócio','Entradas','Despesas Gerais','Total'],rowsSoc);
 
     // ── Rodapé ──
