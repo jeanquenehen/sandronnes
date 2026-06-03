@@ -990,13 +990,28 @@ async function exportarPDF(){
 
     // ── Cabeçalho ──
     doc.setFillColor(46,204,113);
-    doc.rect(0,0,W,22,'F');
+    doc.rect(0,0,W,26,'F');
+
+    // Logo (tenta carregar a imagem do sistema)
+    try{
+      const logoEl=document.querySelector('.logo-img');
+      if(logoEl){
+        const canvas=document.createElement('canvas');
+        canvas.width=logoEl.naturalWidth||logoEl.width;
+        canvas.height=logoEl.naturalHeight||logoEl.height;
+        const ctx=canvas.getContext('2d');
+        ctx.drawImage(logoEl,0,0);
+        const logoData=canvas.toDataURL('image/png');
+        doc.addImage(logoData,'PNG',margin,4,16,16);
+      }
+    }catch(e){/* logo não disponível, sem problema */}
+
     doc.setTextColor(255,255,255);
     doc.setFontSize(16); doc.setFont('helvetica','bold');
-    doc.text('Sandronnes',margin,13);
+    doc.text('Sandronnes',margin+20,13);
     doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.text('Sistema de Gestão de Drones Agrícolas',margin,19);
-    y=30;
+    doc.text('Sistema de Gestão de Drones Agrícolas',margin+20,20);
+    y=34;
 
     // ── Título e período ──
     doc.setTextColor(44,62,80);
@@ -1025,25 +1040,13 @@ async function exportarPDF(){
       doc.setFontSize(11); doc.setTextColor(44,62,80); doc.setFont('helvetica','bold');
       doc.text(val,x+4,y+14);
     });
-    y+=26;
-
-    // ── Captura gráficos ──
-    const canvas1=document.getElementById('chart-rel-recdesp');
-    const canvas2=document.getElementById('chart-rel-trabalhos');
-    if(canvas1&&canvas2){
-      const img1=canvas1.toDataURL('image/png');
-      const img2=canvas2.toDataURL('image/png');
-      const gW=(W-margin*2-6)/2;
-      doc.addImage(img1,'PNG',margin,y,gW,40);
-      doc.addImage(img2,'PNG',margin+gW+6,y,gW,40);
-      y+=46;
-    }
+    y+=30;
 
     // ── Função auxiliar para tabelas ──
     const addTabela=(titulo,headers,rows)=>{
       if(y>250){doc.addPage();y=margin;}
       doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(44,62,80);
-      doc.text(titulo,margin,y); y+=5;
+      doc.text(titulo,margin,y); y+=6;
       // Header
       doc.setFillColor(46,204,113);
       doc.rect(margin,y,W-margin*2,7,'F');
@@ -1060,7 +1063,7 @@ async function exportarPDF(){
         row.forEach((cell,i)=>doc.text(String(cell||'—'),margin+i*cw+2,y+4.5));
         y+=6;
       });
-      y+=6;
+      y+=12; // margem maior após cada tabela
     };
 
     // ── Tabela operadores ──
@@ -1071,9 +1074,9 @@ async function exportarPDF(){
     const rowsRep=[...document.querySelectorAll('#rel-tbody-rep tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim()));
     if(rowsRep.length) addTabela('Ganhos por representante',['Representante','Trabalhos','Hectares','Ganho total'],rowsRep);
 
-    // ── Tabela sócios ──
+    // ── Tabela sócios — "Desp. gerais" resumido para caber ──
     const rowsSoc=[...document.querySelectorAll('#rel-tbody-socios tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim()));
-    if(rowsSoc.length) addTabela('Divisão entre sócios',['Sócio','Trabalhos (líquido)','Despesas gerais (−50%)','Total'],rowsSoc);
+    if(rowsSoc.length) addTabela('Divisão entre sócios',['Sócio','Trabalhos (líq.)','Desp. gerais (−50%)','Total'],rowsSoc);
 
     // ── Rodapé ──
     const pages=doc.getNumberOfPages();
