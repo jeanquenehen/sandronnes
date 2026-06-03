@@ -365,10 +365,6 @@ tbody td{padding:13px 18px;font-size:.88rem;}
       </div>
     </div><!-- fim kpi-grid -->
     <div id="rel-conteudo">
-    <div class="charts-grid">
-      <div class="chart-card"><h4>Receita vs Despesas no período</h4><canvas id="chart-rel-recdesp" height="200"></canvas></div>
-      <div class="chart-card"><h4>Trabalhos no período por status</h4><canvas id="chart-rel-trabalhos" height="200"></canvas></div>
-    </div>
     <div class="table-card" style="margin-top:18px">
       <div class="table-head"><h3>Ganhos por operador no período</h3></div>
       <table><thead><tr><th>Operador</th><th>Trabalhos</th><th>Hectares</th><th>Ganho total</th></tr></thead><tbody id="rel-tbody-op"></tbody></table>
@@ -983,10 +979,6 @@ function gerarRelatorio(){
     </tr>`;
 
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';Chart.defaults.color=isDark?'#8892a0':'#7f8c8d';
-  if(charts.relrd)charts.relrd.destroy();if(charts.reltr)charts.reltr.destroy();
-  charts.relrd=new Chart(document.getElementById('chart-rel-recdesp'),{type:'bar',data:{labels:['Receita','Despesas','Líquido'],datasets:[{data:[receita,despTot,liquido],backgroundColor:['rgba(46,204,113,.7)','rgba(231,76,60,.7)','rgba(52,152,219,.7)'],borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$ '+v.toLocaleString('pt-BR')}}}}});
-  const byStatus={};trabs.forEach(t=>{const s=t.status_pagamento||'—';byStatus[s]=(byStatus[s]||0)+1;});
-  charts.reltr=new Chart(document.getElementById('chart-rel-trabalhos'),{type:'doughnut',data:{labels:Object.keys(byStatus),datasets:[{data:Object.values(byStatus),backgroundColor:['rgba(46,204,113,.8)','rgba(52,152,219,.8)','rgba(243,156,18,.8)','rgba(231,76,60,.8)'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
 
   // ── Tabela trabalhos do período ──
   document.getElementById('badge-rel-trabalhos').textContent=trabs.length+' reg.';
@@ -1019,7 +1011,7 @@ function gerarRelatorio(){
             </div>
           </td>
         </tr>`:'';
-      return`<tr style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none'">
+      return`<tr data-id="${t.id}" style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none'">
         <td><strong>${esc(cli?.nome||'—')}</strong></td>
         <td class="td-muted">${esc(t.servico||'—')}</td>
         <td class="td-muted">${t.dimensao_ha?t.dimensao_ha+' ha':'—'}</td>
@@ -1162,10 +1154,76 @@ async function exportarPDF(){
     if(rowsSoc.length) addTabela('Divisão entre sócios',['Sócio','Entradas','Despesas Gerais','Total'],rowsSoc);
 
     // ── Tabela trabalhos do período ──
-    const rowsTrab=[...document.querySelectorAll('#rel-tbody-trabalhos tr')]
-      .filter(tr=>tr.querySelectorAll('td').length===8&&!tr.getAttribute('style')?.includes('input-bg'))
-      .map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim()));
-    if(rowsTrab.length) addTabela('Trabalhos no período',['Cliente','Serviço','Dim.','Valor','Despesas','Saldo','Recebido','Situação'],rowsTrab);
+    const trabsPeriodo=[...document.querySelectorAll('#rel-tbody-trabalhos tr')]
+      .filter(tr=>tr.querySelectorAll('td').length===8&&!tr.getAttribute('style')?.includes('input-bg'));
+
+    if(trabsPeriodo.length){
+      if(y>240){doc.addPage();y=margin;}
+      doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(44,62,80);
+      doc.text('Trabalhos no período',margin,y);y+=4;
+      const tableW=W-margin*2;
+      const cols=['Cliente','Serviço','Valor','Despesas','Saldo'];
+      const cws=[50,45,30,30,27]; // larguras em mm
+
+      // Header
+      doc.setFillColor(46,204,113);doc.rect(margin,y,tableW,7,'F');
+      doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
+      let cx=margin;
+      cols.forEach((h,i)=>{doc.text(h,cx+2,y+5);cx+=cws[i];});
+      const headerY=y; y+=7;
+
+      trabsPeriodo.forEach((tr,ri)=>{
+        if(y>265){doc.addPage();y=margin;}
+        const tds=[...tr.querySelectorAll('td')].map(td=>td.textContent.trim());
+        // Cliente, Serviço, Valor, Despesas, Saldo
+        const rowData=[tds[0],tds[1],tds[3],tds[4],tds[5]];
+        doc.setFillColor(ri%2===0?255:248,ri%2===0?255:250,ri%2===0?255:252);
+        doc.rect(margin,y,tableW,6,'F');
+        doc.setTextColor(44,62,80);doc.setFontSize(8);doc.setFont('helvetica','normal');
+        cx=margin;
+        rowData.forEach((cell,i)=>{
+          const txt=String(cell||'—').substring(0,Math.floor(cws[i]/2.2));
+          doc.text(txt,cx+2,y+4.5);cx+=cws[i];
+        });
+        y+=6;
+
+        // Sub-linhas: pagamentos deste trabalho
+        const trabId=tr.getAttribute('data-id');
+        const pags=trabId?DB.pagamentos.filter(p=>p.trabalho_id===trabId):[];
+        const desps=trabId?DB.despesas.filter(d=>d.trabalho_id===trabId):[];
+
+        if(pags.length||desps.length){
+          if(y>260){doc.addPage();y=margin;}
+          // Cabeçalho sub
+          doc.setFillColor(240,248,244);doc.rect(margin,y,tableW,5,'F');
+          doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(46,204,113);
+          doc.text('Pagamentos',margin+2,y+3.5);
+          doc.text('Despesas',margin+tableW/2+2,y+3.5);
+          y+=5;
+
+          const maxRows=Math.max(pags.length,desps.length);
+          for(let r=0;r<maxRows;r++){
+            if(y>268){doc.addPage();y=margin;}
+            doc.setFillColor(250,253,251);doc.rect(margin,y,tableW,5,'F');
+            doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(44,62,80);
+            if(pags[r]){
+              doc.text(fmtDate(pags[r].data_pagamento),margin+2,y+3.5);
+              doc.text(brl(pags[r].valor),margin+tableW/2-20,y+3.5);
+            }
+            if(desps[r]){
+              doc.text(String(desps[r].tipo||'').substring(0,18),margin+tableW/2+2,y+3.5);
+              doc.text(brl(desps[r].valor),W-margin-18,y+3.5);
+            }
+            y+=5;
+          }
+        }
+      });
+
+      // Borda da tabela principal
+      doc.setDrawColor(200,210,220);doc.setLineWidth(0.3);
+      doc.rect(margin,headerY,tableW,y-headerY,'S');
+      y+=12;
+    }
 
     // ── Tabela despesas gerais do período ──
     const rowsDG=[...document.querySelectorAll('#rel-tbody-despsger tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim()));
