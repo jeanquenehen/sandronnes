@@ -137,6 +137,7 @@ function crudRoutes(router, tabela, campos) {
             if (error) throw error;
             res.json(data);
         } catch (e) {
+            console.error(`[GET /api/${tabela}]`, e.message, e);
             res.status(500).json({ success: false, message: e.message });
         }
     });
@@ -306,9 +307,53 @@ crudRoutes(app, 'despesas', [
     'trabalho_id', 'data', 'tipo', 'valor', 'descricao'
 ]);
 
-crudRoutes(app, 'investimentos', [
-    'data', 'valor', 'descricao'
-]);
+// Investimentos — rota dedicada com supabaseAdmin para evitar bloqueio de RLS
+app.get('/api/investimentos', requireAuth, async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('investimentos').select('*').order('criado_em', { ascending: false });
+        if (error) throw error;
+        res.json(data);
+    } catch (e) {
+        console.error('[GET /api/investimentos]', e.message);
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+app.post('/api/investimentos', requireAuth, async (req, res) => {
+    try {
+        const payload = filtrarCampos(req.body, ['data', 'valor', 'descricao']);
+        const { data, error } = await supabaseAdmin
+            .from('investimentos').insert(payload).select().single();
+        if (error) throw error;
+        res.status(201).json(data);
+    } catch (e) {
+        console.error('[POST /api/investimentos]', e.message);
+        res.status(400).json({ success: false, message: e.message });
+    }
+});
+app.put('/api/investimentos/:id', requireAuth, async (req, res) => {
+    try {
+        const payload = filtrarCampos(req.body, ['data', 'valor', 'descricao']);
+        const { data, error } = await supabaseAdmin
+            .from('investimentos').update(payload).eq('id', req.params.id).select().single();
+        if (error) throw error;
+        res.json(data);
+    } catch (e) {
+        console.error('[PUT /api/investimentos]', e.message);
+        res.status(400).json({ success: false, message: e.message });
+    }
+});
+app.delete('/api/investimentos/:id', requireAuth, async (req, res) => {
+    try {
+        const { error } = await supabaseAdmin
+            .from('investimentos').delete().eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (e) {
+        console.error('[DELETE /api/investimentos]', e.message);
+        res.status(400).json({ success: false, message: e.message });
+    }
+});
 
 crudRoutes(app, 'despesas_gerais', [
     'data', 'tipo', 'valor', 'descricao'
