@@ -432,7 +432,7 @@ tbody td{padding:13px 18px;font-size:.88rem;}
     <div class="modal-body"><div class="form-grid">
       <div class="fg"><label>Data</label><input type="date" id="dg-data"></div>
       <div class="fg"><label>Tipo / Categoria</label><select id="dg-tipo"><option value="Contador">Contador</option><option value="Oficina">Oficina</option><option value="Manutenção equipamentos">Manutenção equipamentos</option><option value="Geral">Geral</option></select></div>
-      <div class="fg"><label>Valor (R$)</label><input type="text" id="dg-valor" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+      <div class="fg"><label>Valor (R$)</label><input type="text" id="dg-valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)"></div>
       <div class="fg full"><label>Descrição</label><textarea id="dg-descricao" placeholder="Detalhes da despesa..."></textarea></div>
     </div></div>
     <div class="modal-foot"><button class="btn-cancel" onclick="closeModal('despesa_geral')">Cancelar</button><button class="btn-save" id="btn-save-despesa_geral" onclick="salvar('despesa_geral')"><i class="fas fa-check"></i> Salvar</button></div>
@@ -528,11 +528,11 @@ async function loadAll(){
 function renderAll(){renderClientes();renderTrabalhos();renderPagamentos();renderDespesas();renderDespesasGerais();renderOperadores();renderRepresentantes();}
 
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const brl=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const brl=v=>formatarMoeda(v);
 const fmtDate=d=>d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):'—';
 function parseBRL(str){return parseFloat((str||'').replace(/[^\d,]/g,'').replace(',','.'))||0;}
-function maskBRL(el){let v=el.value.replace(/\D/g,'');if(!v){el.value='';return;}v=(parseInt(v)/100).toFixed(2);el.value='R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function setBRL(id,v){const el=document.getElementById(id);if(!el)return;const n=parseFloat(v)||0;el.value=n>0?'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';}
+function maskBRL(el){ mascaraMoeda(el); }
+function setBRL(id,v){const el=document.getElementById(id);if(!el)return;const n=parseFloat(v)||0;el.value=n>0?formatarMoeda(n):'';}
 function statusTag(s){const m={'Pago':'tag-green','A receber':'tag-orange','Parcelado':'tag-blue','Atrasado':'tag-red'};return`<span class="tag ${m[s]||'tag-gray'}">${esc(s||'—')}</span>`;}
 function statusEquipe(s){return s==='Ativo'?`<span class="tag tag-green">Ativo</span>`:`<span class="tag tag-gray">Inativo</span>`;}
 function filtrar(tipo,q){
@@ -582,23 +582,23 @@ function renderTrabalhos(){
     const desps=DB.despesas.filter(dd=>dd.trabalho_id===t.id);
 
     const pagsHtml=pags.length
-      ?`<table><thead><tr><th>Data</th><th>Valor</th><th>Descrição</th></tr></thead><tbody>${pags.map(p=>`<tr><td>${fmtDate(p.data_pagamento)}</td><td>${brl(p.valor)}</td><td>${esc(p.descricao||'—')}</td></tr>`).join('')}</tbody></table>`
+      ?`<table><thead><tr><th>Data</th><th>Valor</th><th>Descrição</th></tr></thead><tbody>${pags.map(p=>`<tr><td>${fmtDate(p.data_pagamento)}</td><td>${formatarMoeda(p.valor)}</td><td>${esc(p.descricao||'—')}</td></tr>`).join('')}</tbody></table>`
       :'<div class="detail-empty">Nenhum pagamento registrado.</div>';
 
     const despsHtml=desps.length
-      ?`<table><thead><tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Descrição</th></tr></thead><tbody>${desps.map(dd=>`<tr><td>${fmtDate(dd.data)}</td><td>${esc(dd.tipo||'—')}</td><td>${brl(dd.valor)}</td><td>${esc(dd.descricao||'—')}</td></tr>`).join('')}</tbody></table>`
+      ?`<table><thead><tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Descrição</th></tr></thead><tbody>${desps.map(dd=>`<tr><td>${fmtDate(dd.data)}</td><td>${esc(dd.tipo||'—')}</td><td>${formatarMoeda(dd.valor)}</td><td>${esc(dd.descricao||'—')}</td></tr>`).join('')}</tbody></table>`
       :'<div class="detail-empty">Nenhuma despesa registrada.</div>';
 
     return`<tr class="row-toggle" onclick="toggleDetail('${t.id}',this)">
       <td><strong>${esc(cli?.nome||'—')}</strong></td>
       <td>${esc(t.servico||'—')}</td>
       <td class="td-muted">${t.dimensao_ha?t.dimensao_ha+' ha':'—'}</td>
-      <td>${brl(t.valor_total)}</td>
-      <td style="color:var(--danger);font-size:.82rem">${totalDesp>0?'− '+brl(totalDesp):'—'}</td>
-      <td style="font-weight:600;font-size:.82rem;${corSaldo}">${brl(saldo)}</td>
-      <td style="color:var(--primary);font-size:.82rem">${totalRecebido>0?brl(totalRecebido):'—'}</td>
-      <td style="font-weight:600;font-size:.82rem;${corS}">${brl(sandroR)}</td>
-      <td style="font-weight:600;font-size:.82rem;${corR}">${brl(rafaelR)}</td>
+      <td>${formatarMoeda(t.valor_total)}</td>
+      <td style="color:var(--danger);font-size:.82rem">${totalDesp>0?'− '+formatarMoeda(totalDesp):'—'}</td>
+      <td style="font-weight:600;font-size:.82rem;${corSaldo}">${formatarMoeda(saldo)}</td>
+      <td style="color:var(--primary);font-size:.82rem">${totalRecebido>0?formatarMoeda(totalRecebido):'—'}</td>
+      <td style="font-weight:600;font-size:.82rem;${corS}">${formatarMoeda(sandroR)}</td>
+      <td style="font-weight:600;font-size:.82rem;${corR}">${formatarMoeda(rafaelR)}</td>
       <td class="td-muted">${fmtDate(t.data_execucao)}</td>
       <td>${statusTrabTag(t.status_trabalho)}</td>
       <td>${statusTag(t.status_pagamento)}</td>
@@ -629,15 +629,15 @@ function toggleDetail(id, rowEl){
 }
 function renderPagamentos(){
   const d=rows('pagamentos');document.getElementById('badge-pagamentos').textContent=d.length+' reg.';
-  document.getElementById('tbody-pagamentos').innerHTML=!d.length?emptyRow(6):d.map(p=>{const tr=DB.trabalhos.find(t=>t.id===p.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td><strong>${esc(cli?.nome||tr?.servico||'—')}</strong></td><td>${brl(p.valor)}</td><td class="td-muted">${fmtDate(p.data_vencimento)}</td><td class="td-muted">${fmtDate(p.data_pagamento)}</td><td class="td-muted">${esc(p.descricao||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('pagamento','${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('pagamento','${p.id}','pagamento de ${brl(p.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
+  document.getElementById('tbody-pagamentos').innerHTML=!d.length?emptyRow(6):d.map(p=>{const tr=DB.trabalhos.find(t=>t.id===p.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td><strong>${esc(cli?.nome||tr?.servico||'—')}</strong></td><td>${formatarMoeda(p.valor)}</td><td class="td-muted">${fmtDate(p.data_vencimento)}</td><td class="td-muted">${fmtDate(p.data_pagamento)}</td><td class="td-muted">${esc(p.descricao||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('pagamento','${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('pagamento','${p.id}','pagamento de ${formatarMoeda(p.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
 }
 function renderDespesas(){
   const d=rows('despesas');document.getElementById('badge-despesas').textContent=d.length+' reg.';
-  document.getElementById('tbody-despesas').innerHTML=!d.length?emptyRow(6):d.map(d=>{const tr=DB.trabalhos.find(t=>t.id===d.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td class="td-muted">${fmtDate(d.data)}</td><td><span class="tag tag-gray">${esc(d.tipo||'—')}</span></td><td>${esc(d.descricao||'—')}</td><td><strong>${brl(d.valor)}</strong></td><td class="td-muted">${esc(cli?.nome||tr?.servico||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('despesa','${d.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('despesa','${d.id}','despesa ${brl(d.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
+  document.getElementById('tbody-despesas').innerHTML=!d.length?emptyRow(6):d.map(d=>{const tr=DB.trabalhos.find(t=>t.id===d.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td class="td-muted">${fmtDate(d.data)}</td><td><span class="tag tag-gray">${esc(d.tipo||'—')}</span></td><td>${esc(d.descricao||'—')}</td><td><strong>${formatarMoeda(d.valor)}</strong></td><td class="td-muted">${esc(cli?.nome||tr?.servico||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('despesa','${d.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('despesa','${d.id}','despesa ${formatarMoeda(d.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
 }
 function renderDespesasGerais(){
   const d=rows('despesas_gerais');document.getElementById('badge-despesas-gerais').textContent=d.length+' reg.';
-  document.getElementById('tbody-despesas-gerais').innerHTML=!d.length?emptyRow(5):d.map(d=>`<tr><td class="td-muted">${fmtDate(d.data)}</td><td><span class="tag tag-blue">${esc(d.tipo||'—')}</span></td><td>${esc(d.descricao||'—')}</td><td><strong>${brl(d.valor)}</strong></td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('despesa_geral','${d.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('despesa_geral','${d.id}','despesa geral ${brl(d.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
+  document.getElementById('tbody-despesas-gerais').innerHTML=!d.length?emptyRow(5):d.map(d=>`<tr><td class="td-muted">${fmtDate(d.data)}</td><td><span class="tag tag-blue">${esc(d.tipo||'—')}</span></td><td>${esc(d.descricao||'—')}</td><td><strong>${formatarMoeda(d.valor)}</strong></td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('despesa_geral','${d.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('despesa_geral','${d.id}','despesa geral ${formatarMoeda(d.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function renderOperadores(){
   const d=[...rows('operadores')].sort((a,b)=>{if(a.status!==b.status)return a.status==='Ativo'?-1:1;return(a.nome||'').localeCompare(b.nome||'','pt-BR');});
@@ -656,13 +656,13 @@ function loadDashboard(){
   const trabMes=doMes(DB.trabalhos);
   // KPI faturamento = pagamentos com status Pago recebidos no mês
   const fatMes=DB.pagamentos.filter(p=>p.data_pagamento&&(()=>{const d=new Date(p.data_pagamento+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===ano;})()).reduce((s,p)=>s+(+p.valor||0),0);
-  document.getElementById('kpi-fat').textContent=brl(fatMes);
+  document.getElementById('kpi-fat').textContent=formatarMoeda(fatMes);
   document.getElementById('kpi-ativos').textContent=DB.trabalhos.filter(t=>t.status_trabalho==='Em andamento').length;
-  const totalPago=DB.pagamentos.reduce((s,p)=>s+(+p.valor||0),0);const totalFaturado=DB.trabalhos.reduce((s,t)=>s+(+t.valor_total||0),0);document.getElementById('kpi-saldo').textContent=brl(Math.max(0,totalFaturado-totalPago));
-  document.getElementById('kpi-desp').textContent=brl([...doMes(DB.despesas),...doMes(DB.despesas_gerais)].reduce((s,d)=>s+(+d.valor||0),0));
+  const totalPago=DB.pagamentos.reduce((s,p)=>s+(+p.valor||0),0);const totalFaturado=DB.trabalhos.reduce((s,t)=>s+(+t.valor_total||0),0);document.getElementById('kpi-saldo').textContent=formatarMoeda(Math.max(0,totalFaturado-totalPago));
+  document.getElementById('kpi-desp').textContent=formatarMoeda([...doMes(DB.despesas),...doMes(DB.despesas_gerais)].reduce((s,d)=>s+(+d.valor||0),0));
   document.getElementById('kpi-ha').textContent=trabMes.reduce((s,t)=>s+(+t.dimensao_ha||0),0).toFixed(1)+' ha';
-  document.getElementById('kpi-op').textContent=brl(trabMes.reduce((s,t)=>s+(+t.ganho_operador||0),0));
-  document.getElementById('kpi-rep').textContent=brl(trabMes.reduce((s,t)=>s+(+t.ganho_representante||0),0));
+  document.getElementById('kpi-op').textContent=formatarMoeda(trabMes.reduce((s,t)=>s+(+t.ganho_operador||0),0));
+  document.getElementById('kpi-rep').textContent=formatarMoeda(trabMes.reduce((s,t)=>s+(+t.ganho_representante||0),0));
   const sc={};DB.trabalhos.forEach(t=>{const s=t.status_trabalho||'—';sc[s]=(sc[s]||0)+1;});
   document.getElementById('kpi-status').textContent=Object.entries(sc).map(([k,v])=>`${v} ${k}`).join(' · ');
   buildCharts(mes,ano,sc);
@@ -676,11 +676,11 @@ function buildCharts(mes,ano,sc){
   const fatData=months.map(({m,y})=>DB.trabalhos.filter(t=>{const d=new Date((t.data_execucao||'')+'T12:00:00');return d.getMonth()===m&&d.getFullYear()===y;}).reduce((s,t)=>s+(+t.valor_total||0),0));
   const haData=months.map(({m,y})=>DB.trabalhos.filter(t=>{const d=new Date((t.data_execucao||'')+'T12:00:00');return d.getMonth()===m&&d.getFullYear()===y;}).reduce((s,t)=>s+(+t.dimensao_ha||0),0));
   ['fat','status','ha','op'].forEach(k=>{if(charts[k])charts[k].destroy();});
-  charts.fat=new Chart(document.getElementById('chart-fat'),{type:'bar',data:{labels,datasets:[{label:'Faturamento',data:fatData,backgroundColor:'rgba(46,204,113,.7)',borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$ '+v.toLocaleString('pt-BR')}}}}});
+  charts.fat=new Chart(document.getElementById('chart-fat'),{type:'bar',data:{labels,datasets:[{label:'Faturamento',data:fatData,backgroundColor:'rgba(46,204,113,.7)',borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>formatarMoeda(v)}}}}});
   charts.status=new Chart(document.getElementById('chart-status'),{type:'doughnut',data:{labels:Object.keys(sc),datasets:[{data:Object.values(sc),backgroundColor:['rgba(46,204,113,.8)','rgba(52,152,219,.8)','rgba(243,156,18,.8)','rgba(231,76,60,.8)'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
   charts.ha=new Chart(document.getElementById('chart-ha'),{type:'line',data:{labels,datasets:[{label:'Hectares',data:haData,borderColor:'#3498db',backgroundColor:'rgba(52,152,219,.1)',tension:.4,fill:true,pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}}}});
   const opG={};DB.trabalhos.forEach(t=>{const op=DB.operadores.find(o=>o.id===t.operador_id);if(op){opG[op.nome]=(opG[op.nome]||0)+(+t.ganho_operador||0);}});
-  charts.op=new Chart(document.getElementById('chart-op'),{type:'bar',data:{labels:Object.keys(opG),datasets:[{label:'Ganho',data:Object.values(opG),backgroundColor:'rgba(155,89,182,.7)',borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$ '+v.toLocaleString('pt-BR')}}}}});
+  charts.op=new Chart(document.getElementById('chart-op'),{type:'bar',data:{labels:Object.keys(opG),datasets:[{label:'Ganho',data:Object.values(opG),backgroundColor:'rgba(155,89,182,.7)',borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>formatarMoeda(v)}}}}});
 }
 
 function percFaixa(ha){if(!ha||ha<=0)return 0;if(ha<=300)return 0.05;if(ha<=700)return 0.07;return 0.10;}
@@ -690,7 +690,7 @@ function calcGanhos(){
   setBRL('t-valor',total);
   setBRL('t-ganho-op',ganho);
   setBRL('t-ganho-rep',ganho);
-  const lbl=ha>0?`${pct} de ${brl(total)} (faixa: ${ha<=300?'≤300':ha<=700?'301–700':'>700'} ha)`:'';
+  const lbl=ha>0?`${pct} de ${formatarMoeda(total)} (faixa: ${ha<=300?'≤300':ha<=700?'301–700':'>700'} ha)`:'';
   document.getElementById('prev-op').textContent=lbl;document.getElementById('prev-rep').textContent=lbl;
 }
 
@@ -783,17 +783,17 @@ function gerarRelatorio(){
   const receita=trabs.reduce((s,t)=>s+(+t.valor_total||0),0);
   const despTot=[...despsTrab,...despsGer].reduce((s,d)=>s+(+d.valor||0),0);
   const liquido=receita-despTot;
-  document.getElementById('rel-receita').textContent=brl(receita);
-  document.getElementById('rel-despesas').textContent=brl(despTot);
-  document.getElementById('rel-liquido').textContent=brl(liquido);
+  document.getElementById('rel-receita').textContent=formatarMoeda(receita);
+  document.getElementById('rel-despesas').textContent=formatarMoeda(despTot);
+  document.getElementById('rel-liquido').textContent=formatarMoeda(liquido);
 
   // Ganhos por operador
   const opMap={};trabs.forEach(t=>{const op=DB.operadores.find(o=>o.id===t.operador_id);if(!op)return;if(!opMap[op.id])opMap[op.id]={nome:op.nome,qtd:0,ha:0,ganho:0};opMap[op.id].qtd++;opMap[op.id].ha+=(+t.dimensao_ha||0);opMap[op.id].ganho+=(+t.ganho_operador||0);});
-  document.getElementById('rel-tbody-op').innerHTML=Object.values(opMap).length?Object.values(opMap).map(o=>`<tr><td>${esc(o.nome)}</td><td>${o.qtd}</td><td>${o.ha.toFixed(1)} ha</td><td><strong>${brl(o.ganho)}</strong></td></tr>`).join(''):emptyRow(4,'Nenhum dado no período.');
+  document.getElementById('rel-tbody-op').innerHTML=Object.values(opMap).length?Object.values(opMap).map(o=>`<tr><td>${esc(o.nome)}</td><td>${o.qtd}</td><td>${o.ha.toFixed(1)} ha</td><td><strong>${formatarMoeda(o.ganho)}</strong></td></tr>`).join(''):emptyRow(4,'Nenhum dado no período.');
 
   // Ganhos por representante
   const repMap={};trabs.forEach(t=>{if(!t.representante_id)return;const rp=DB.representantes.find(r=>r.id===t.representante_id);if(!rp)return;if(!repMap[rp.id])repMap[rp.id]={nome:rp.nome,qtd:0,ha:0,ganho:0};repMap[rp.id].qtd++;repMap[rp.id].ha+=(+t.dimensao_ha||0);repMap[rp.id].ganho+=(+t.ganho_representante||0);});
-  document.getElementById('rel-tbody-rep').innerHTML=Object.values(repMap).length?Object.values(repMap).map(r=>`<tr><td>${esc(r.nome)}</td><td>${r.qtd}</td><td>${r.ha.toFixed(1)} ha</td><td><strong>${brl(r.ganho)}</strong></td></tr>`).join(''):emptyRow(4,'Nenhum dado no período.');
+  document.getElementById('rel-tbody-rep').innerHTML=Object.values(repMap).length?Object.values(repMap).map(r=>`<tr><td>${esc(r.nome)}</td><td>${r.qtd}</td><td>${r.ha.toFixed(1)} ha</td><td><strong>${formatarMoeda(r.ganho)}</strong></td></tr>`).join(''):emptyRow(4,'Nenhum dado no período.');
 
   // Divisão entre sócios: percentual sobre o SALDO LÍQUIDO de cada trabalho
   // Despesas gerais do período: divididas 50/50
@@ -834,20 +834,20 @@ function gerarRelatorio(){
   document.getElementById('rel-tbody-socios').innerHTML = `
     <tr>
       <td><strong>Sandro</strong></td>
-      <td style="${corValor(sandroTrabs)}">${brl(sandroTrabs)}</td>
-      <td style="color:var(--danger)">− ${brl(sandroDesp)}</td>
-      <td style="font-weight:700;font-size:.95rem;${corValor(sandroTotal)}">${brl(sandroTotal)}</td>
+      <td style="${corValor(sandroTrabs)}">${formatarMoeda(sandroTrabs)}</td>
+      <td style="color:var(--danger)">− ${formatarMoeda(sandroDesp)}</td>
+      <td style="font-weight:700;font-size:.95rem;${corValor(sandroTotal)}">${formatarMoeda(sandroTotal)}</td>
     </tr>
     <tr>
       <td><strong>Rafael</strong></td>
-      <td style="${corValor(rafaelTrabs)}">${brl(rafaelTrabs)}</td>
-      <td style="color:var(--danger)">− ${brl(rafaelDesp)}</td>
-      <td style="font-weight:700;font-size:.95rem;${corValor(rafaelTotal)}">${brl(rafaelTotal)}</td>
+      <td style="${corValor(rafaelTrabs)}">${formatarMoeda(rafaelTrabs)}</td>
+      <td style="color:var(--danger)">− ${formatarMoeda(rafaelDesp)}</td>
+      <td style="font-weight:700;font-size:.95rem;${corValor(rafaelTotal)}">${formatarMoeda(rafaelTotal)}</td>
     </tr>`;
 
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';Chart.defaults.color=isDark?'#8892a0':'#7f8c8d';
   if(charts.relrd)charts.relrd.destroy();if(charts.reltr)charts.reltr.destroy();
-  charts.relrd=new Chart(document.getElementById('chart-rel-recdesp'),{type:'bar',data:{labels:['Receita','Despesas','Líquido'],datasets:[{data:[receita,despTot,liquido],backgroundColor:['rgba(46,204,113,.7)','rgba(231,76,60,.7)','rgba(52,152,219,.7)'],borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$ '+v.toLocaleString('pt-BR')}}}}});
+  charts.relrd=new Chart(document.getElementById('chart-rel-recdesp'),{type:'bar',data:{labels:['Receita','Despesas','Líquido'],datasets:[{data:[receita,despTot,liquido],backgroundColor:['rgba(46,204,113,.7)','rgba(231,76,60,.7)','rgba(52,152,219,.7)'],borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>formatarMoeda(v)}}}}});
   const byStatus={};trabs.forEach(t=>{const s=t.status_pagamento||'—';byStatus[s]=(byStatus[s]||0)+1;});
   charts.reltr=new Chart(document.getElementById('chart-rel-trabalhos'),{type:'doughnut',data:{labels:Object.keys(byStatus),datasets:[{data:Object.values(byStatus),backgroundColor:['rgba(46,204,113,.8)','rgba(52,152,219,.8)','rgba(243,156,18,.8)','rgba(231,76,60,.8)'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
 }
