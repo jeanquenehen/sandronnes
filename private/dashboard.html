@@ -671,7 +671,7 @@ tbody td{padding:12px 18px;font-size:.84rem;font-variant-numeric:tabular-nums;}
 @media(max-width:768px){.detail-inner{grid-template-columns:1fr;}}
 
 /* ━━━ READ-ONLY MODE (Sócio e demais não-admin) ━━━ */
-body.readonly .btn-primary,
+body.readonly .btn-primary:not(.keep-readonly),
 body.readonly .action-btns,
 body.readonly .btn-icon.btn-edit,
 body.readonly .btn-icon.btn-del,
@@ -882,8 +882,8 @@ body.readonly td.col-acoes{display:none !important;}
         <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
           <input type="month" id="rel-inicio" style="padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:.85rem;">
           <input type="month" id="rel-fim" style="padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:.85rem;">
-          <button class="btn-primary" style="justify-content:center;" onclick="gerarRelatorio()"><i class="fas fa-filter"></i> Gerar</button>
-          <button class="btn-primary" style="justify-content:center;background:var(--danger);" onclick="exportarPDF()"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
+          <button class="btn-primary keep-readonly" style="justify-content:center;" onclick="gerarRelatorio()"><i class="fas fa-filter"></i> Gerar</button>
+          <button class="btn-primary keep-readonly" style="justify-content:center;background:var(--danger);" onclick="exportarPDF()"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
         </div>
       </div>
     </div><!-- fim kpi-grid -->
