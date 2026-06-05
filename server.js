@@ -498,6 +498,91 @@ app.post('/api/register', requireAuth, async (req, res) => {
     }
 });
 
+// ── USUÁRIOS (admin) ─────────────────────────────────────────────────────────
+// Sufixo interno para "emails falsos": username vira username@sandronnes.com.br
+const USER_DOMAIN = '@sandronnes.com.br';
+const toEmail = u => String(u || '').trim().toLowerCase() + USER_DOMAIN;
+const toUsername = email => String(email || '').replace(USER_DOMAIN, '');
+const PAPEIS_VALIDOS = ['Administrador', 'Sócio', 'Operador', 'Representante'];
+
+app.get('/api/usuarios', requireAuth, async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        if (error) throw error;
+        const lista = (data.users || []).map(u => ({
+            id: u.id,
+            username: toUsername(u.email),
+            nome: u.user_metadata?.nome || '',
+            papel: u.user_metadata?.papel || '',
+            created_at: u.created_at,
+            last_sign_in_at: u.last_sign_in_at
+        }));
+        return res.json(lista);
+    } catch (e) {
+        return res.status(500).json({ message: e.message });
+    }
+});
+
+app.post('/api/usuarios', requireAuth, async (req, res) => {
+    const { username, password, nome, papel } = req.body || {};
+    try {
+        if (!username || !/^[a-z0-9._-]{2,}$/i.test(username))
+            throw new Error('Username inválido. Use letras, números, ponto, traço e underline.');
+        if (!password || password.length < 6)
+            throw new Error('A senha precisa ter no mínimo 6 caracteres.');
+        if (!nome || !nome.trim())
+            throw new Error('Nome é obrigatório.');
+        if (!PAPEIS_VALIDOS.includes(papel))
+            throw new Error('Papel inválido.');
+
+        const { data, error } = await supabaseAdmin.auth.admin.createUser({
+            email: toEmail(username),
+            password,
+            email_confirm: true,
+            user_metadata: { nome: nome.trim(), papel }
+        });
+        if (error) throw error;
+        return res.json({ success: true, id: data.user.id });
+    } catch (e) {
+        return res.status(400).json({ message: e.message });
+    }
+});
+
+app.put('/api/usuarios/:id', requireAuth, async (req, res) => {
+    const { id } = req.params;
+    const { username, password, nome, papel } = req.body || {};
+    try {
+        if (!nome || !nome.trim()) throw new Error('Nome é obrigatório.');
+        if (!PAPEIS_VALIDOS.includes(papel)) throw new Error('Papel inválido.');
+        if (!username || !/^[a-z0-9._-]{2,}$/i.test(username))
+            throw new Error('Username inválido.');
+        if (password && password.length < 6)
+            throw new Error('A nova senha precisa ter no mínimo 6 caracteres.');
+
+        const update = {
+            email: toEmail(username),
+            user_metadata: { nome: nome.trim(), papel }
+        };
+        if (password) update.password = password;
+
+        const { error } = await supabaseAdmin.auth.admin.updateUserById(id, update);
+        if (error) throw error;
+        return res.json({ success: true });
+    } catch (e) {
+        return res.status(400).json({ message: e.message });
+    }
+});
+
+app.delete('/api/usuarios/:id', requireAuth, async (req, res) => {
+    try {
+        const { error } = await supabaseAdmin.auth.admin.deleteUser(req.params.id);
+        if (error) throw error;
+        return res.json({ success: true });
+    } catch (e) {
+        return res.status(400).json({ message: e.message });
+    }
+});
+
 // ── PÁGINAS ──────────────────────────────────────────────────────────────────
 
 app.get('/sistema', (req, res) => {
