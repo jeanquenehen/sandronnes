@@ -4,149 +4,490 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="assets/favicon.png">
-    <title>Login - Sandronnes</title>
+    <title>Acesso · Sandronnes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #2ecc71;
-            --dark-bg: #121212;
-            --card-bg: #1e1e1e;
+        *{box-sizing:border-box;margin:0;padding:0;}
+
+        :root{
+            --primary:        #10d97e;
+            --primary-glow:   #00ffa3;
+            --primary-deep:   #047857;
+            --primary-dim:    rgba(16,217,126,0.12);
+            --bg:             #07090c;
+            --card:           rgba(20,26,32,0.7);
+            --input-bg:       rgba(13,17,22,0.85);
+            --text:           #e8f5ee;
+            --muted:          #6b7785;
+            --border:         rgba(255,255,255,0.06);
+            --border-h:       rgba(16,217,126,0.4);
+            --danger:         #ff4757;
+            --ease:           cubic-bezier(.16,1,.3,1);
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--dark-bg);
-            color: white;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        html,body{height:100%;}
+        body{
+            font-family:'Space Grotesk','Segoe UI',sans-serif;
+            background:var(--bg);
+            color:var(--text);
+            display:flex;
+            min-height:100vh;
+            overflow:hidden;
+            -webkit-font-smoothing:antialiased;
+            position:relative;
         }
 
-        /* Container de Login */
-        .login-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        /* ─── BACKGROUND LAYERS ─── */
+        .bg-grid{
+            position:fixed;inset:0;z-index:0;
+            background-image:
+                linear-gradient(rgba(16,217,126,0.04) 1px,transparent 1px),
+                linear-gradient(90deg,rgba(16,217,126,0.04) 1px,transparent 1px);
+            background-size:48px 48px;
+            mask-image:radial-gradient(ellipse at center,#000 30%,transparent 75%);
+            -webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 75%);
+        }
+        .orb{
+            position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;
+            animation:floatOrb 18s ease-in-out infinite;
+        }
+        .orb-1{width:560px;height:560px;background:radial-gradient(circle,#10d97e 0%,transparent 70%);top:-200px;right:-160px;opacity:.22;}
+        .orb-2{width:480px;height:480px;background:radial-gradient(circle,#00b8ff 0%,transparent 70%);bottom:-180px;left:-140px;opacity:.16;animation-delay:-9s;}
+        .orb-3{width:340px;height:340px;background:radial-gradient(circle,#047857 0%,transparent 70%);top:30%;left:40%;opacity:.12;animation-delay:-4s;}
+        @keyframes floatOrb{
+            0%,100%{transform:translate(0,0) scale(1);}
+            50%{transform:translate(50px,-40px) scale(1.1);}
         }
 
-        .login-card {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
+        /* ─── LAYOUT ─── */
+        .stage{
+            position:relative;z-index:2;
+            flex:1;display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:0;
+            min-height:100vh;
         }
 
-        .login-card h2 { margin-bottom: 30px; color: var(--primary-color); }
+        /* ─── LEFT — branding ─── */
+        .brand-pane{
+            padding:48px 56px;
+            display:flex;flex-direction:column;justify-content:space-between;
+            border-right:1px solid var(--border);
+            position:relative;
+            overflow:hidden;
+            animation:slideIn .8s var(--ease);
+        }
+        @keyframes slideIn{from{opacity:0;transform:translateX(-20px);}to{opacity:1;transform:translateX(0);}}
 
-        .input-group { margin-bottom: 20px; text-align: left; }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            background: #2a2a2a;
-            border: 1px solid #333;
-            border-radius: 6px;
-            color: white;
-            box-sizing: border-box;
+        .brand-top{
+            display:flex;align-items:center;gap:12px;
+        }
+        .brand-top img{height:36px;width:auto;}
+        .brand-name{
+            display:flex;flex-direction:column;line-height:1.15;
+        }
+        .brand-name strong{
+            font-size:1.05rem;font-weight:700;letter-spacing:-.3px;
+        }
+        .brand-name span{
+            font-size:.62rem;color:var(--muted);
+            letter-spacing:3px;text-transform:uppercase;
+            margin-top:2px;
         }
 
-        button {
-            width: 100%;
-            padding: 15px;
-            background: var(--primary-color);
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
+        .brand-hero{
+            display:flex;flex-direction:column;gap:24px;
+            max-width:480px;
+        }
+        .brand-tag{
+            display:inline-flex;align-items:center;gap:8px;
+            font-size:.7rem;font-weight:600;color:var(--primary);
+            letter-spacing:3px;text-transform:uppercase;
+            padding:6px 14px;
+            background:var(--primary-dim);
+            border:1px solid var(--border-h);
+            border-radius:100px;
+            width:fit-content;
+        }
+        .brand-tag i{font-size:.6rem;animation:pulse 2s ease-in-out infinite;}
+        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+        .brand-hero h1{
+            font-family:'Space Grotesk',sans-serif;
+            font-size:clamp(2rem,3.6vw,3.2rem);
+            font-weight:700;line-height:1.05;letter-spacing:-1.5px;
+        }
+        .brand-hero h1 em{
+            font-style:normal;
+            background:linear-gradient(135deg,var(--primary) 0%,var(--primary-glow) 100%);
+            -webkit-background-clip:text;
+            background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+        .brand-hero p{
+            font-size:.98rem;line-height:1.7;color:var(--muted);
+            max-width:420px;
         }
 
-        button:hover { background: #27ae60; }
+        .brand-stats{
+            display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+            padding-top:32px;border-top:1px solid var(--border);
+        }
+        .stat{display:flex;flex-direction:column;gap:4px;}
+        .stat-val{
+            font-family:'Space Grotesk',sans-serif;
+            font-size:1.5rem;font-weight:700;
+            color:var(--primary);
+            font-variant-numeric:tabular-nums;
+            letter-spacing:-.5px;
+        }
+        .stat-label{
+            font-size:.66rem;color:var(--muted);
+            letter-spacing:1.5px;text-transform:uppercase;
+            font-weight:500;
+        }
 
-        /* Estilização do seu Numbers Strip */
-        .numbers-strip { background: #000; padding: 40px 0; border-top: 1px solid #333; }
-        .numbers-inner { display: flex; justify-content: space-around; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; }
-        .number-item { text-align: center; padding: 10px; }
-        .number-val { font-size: 2.5rem; font-weight: bold; color: var(--primary-color); }
-        .number-label { font-size: 0.9rem; color: #888; text-transform: uppercase; margin-top: 5px; }
-        .ndiv { width: 1px; background: #333; height: 50px; align-self: center; }
+        /* ─── RIGHT — form ─── */
+        .form-pane{
+            display:flex;align-items:center;justify-content:center;
+            padding:48px 40px;
+            position:relative;
+            animation:slideIn .8s .1s var(--ease) both;
+        }
 
-        @media (max-width: 768px) {
-            .ndiv { display: none; }
-            .numbers-inner { flex-direction: column; }
+        .login-card{
+            width:100%;max-width:380px;
+            background:var(--card);
+            backdrop-filter:blur(24px) saturate(160%);
+            -webkit-backdrop-filter:blur(24px) saturate(160%);
+            border:1px solid var(--border);
+            border-radius:18px;
+            padding:36px 32px;
+            position:relative;
+            overflow:hidden;
+        }
+        .login-card::before{
+            content:'';
+            position:absolute;top:0;left:0;right:0;height:1px;
+            background:linear-gradient(90deg,transparent,var(--primary),transparent);
+            opacity:.6;
+        }
+
+        .card-head{margin-bottom:28px;}
+        .card-head h2{
+            font-size:1.5rem;font-weight:600;letter-spacing:-.5px;
+            margin-bottom:6px;
+        }
+        .card-head p{
+            font-size:.85rem;color:var(--muted);
+            line-height:1.5;
+        }
+
+        .input-group{
+            margin-bottom:14px;
+            display:flex;flex-direction:column;gap:5px;
+        }
+        .input-group label{
+            font-size:.66rem;font-weight:600;color:var(--muted);
+            text-transform:uppercase;letter-spacing:.1em;
+        }
+        .input-wrap{
+            position:relative;
+            display:flex;align-items:center;
+        }
+        .input-wrap i{
+            position:absolute;left:14px;
+            font-size:.82rem;color:var(--muted);
+            pointer-events:none;
+            transition:color .25s var(--ease);
+        }
+        .input-wrap input{
+            width:100%;
+            padding:12px 14px 12px 40px;
+            background:var(--input-bg);
+            border:1px solid var(--border);
+            border-radius:10px;
+            color:var(--text);
+            font-size:.9rem;
+            font-family:inherit;
+            outline:none;
+            transition:all .3s var(--ease);
+        }
+        .input-wrap input::placeholder{color:var(--muted);}
+        .input-wrap input:focus{
+            border-color:var(--primary);
+            box-shadow:0 0 0 3px var(--primary-dim);
+            background:rgba(13,17,22,1);
+        }
+        .input-wrap input:focus + i,
+        .input-wrap:focus-within i{color:var(--primary);}
+
+        .toggle-pass{
+            position:absolute;right:10px;
+            background:transparent;border:none;
+            width:28px;height:28px;border-radius:6px;
+            color:var(--muted);cursor:pointer;
+            display:flex;align-items:center;justify-content:center;
+            font-size:.78rem;
+            transition:color .2s,background .2s;
+        }
+        .toggle-pass:hover{color:var(--text);background:rgba(255,255,255,0.04);}
+
+        .row{
+            display:flex;justify-content:space-between;align-items:center;
+            margin:8px 0 18px;
+            font-size:.78rem;
+        }
+        .check{
+            display:flex;align-items:center;gap:7px;
+            color:var(--muted);cursor:pointer;
+            user-select:none;
+        }
+        .check input{
+            width:14px;height:14px;
+            accent-color:var(--primary);
+            cursor:pointer;
+        }
+        .check:hover{color:var(--text);}
+        .row a{
+            color:var(--muted);text-decoration:none;
+            transition:color .2s;
+        }
+        .row a:hover{color:var(--primary);}
+
+        .btn-submit{
+            width:100%;
+            padding:13px;
+            background:linear-gradient(135deg,var(--primary) 0%,var(--primary-deep) 100%);
+            color:#fff;border:none;
+            border-radius:10px;
+            font-weight:700;font-size:.88rem;
+            cursor:pointer;
+            display:flex;align-items:center;justify-content:center;gap:9px;
+            font-family:inherit;
+            letter-spacing:.4px;
+            transition:all .3s var(--ease);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
+            position:relative;overflow:hidden;
+        }
+        .btn-submit::before{
+            content:'';
+            position:absolute;inset:0;
+            background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.25) 50%,transparent 70%);
+            transform:translateX(-100%);
+            transition:transform .7s var(--ease);
+        }
+        .btn-submit:hover{
+            transform:translateY(-1px);
+            box-shadow:0 4px 16px rgba(16,217,126,.25),inset 0 1px 0 rgba(255,255,255,.22);
+        }
+        .btn-submit:hover::before{transform:translateX(100%);}
+        .btn-submit:active{transform:translateY(0);}
+        .btn-submit:disabled{
+            opacity:.6;cursor:not-allowed;transform:none;
+        }
+        .btn-submit i{transition:transform .3s var(--ease);}
+        .btn-submit:hover i{transform:translateX(3px);}
+
+        .card-foot{
+            margin-top:22px;padding-top:18px;
+            border-top:1px solid var(--border);
+            text-align:center;
+            font-size:.76rem;color:var(--muted);
+        }
+        .card-foot strong{color:var(--text);font-weight:600;}
+
+        /* ─── ALERT ─── */
+        .alert{
+            display:none;
+            margin-bottom:16px;padding:11px 14px;
+            background:rgba(255,71,87,.08);
+            border:1px solid rgba(255,71,87,.3);
+            border-radius:8px;
+            color:var(--danger);
+            font-size:.8rem;font-weight:500;
+            align-items:center;gap:8px;
+            animation:shake .4s ease;
+        }
+        .alert.show{display:flex;}
+        .alert i{font-size:.86rem;}
+        @keyframes shake{
+            0%,100%{transform:translateX(0);}
+            25%{transform:translateX(-3px);}
+            75%{transform:translateX(3px);}
+        }
+
+        /* ─── FOOTER ─── */
+        .legal{
+            position:fixed;bottom:18px;left:0;right:0;
+            text-align:center;
+            font-size:.7rem;color:var(--muted);
+            letter-spacing:.5px;
+            z-index:3;
+            pointer-events:none;
+        }
+        .legal span{color:var(--primary);}
+
+        /* ─── RESPONSIVE ─── */
+        @media(max-width:880px){
+            body{overflow:auto;}
+            .stage{grid-template-columns:1fr;}
+            .brand-pane{
+                padding:32px 28px 24px;
+                border-right:none;
+                border-bottom:1px solid var(--border);
+            }
+            .brand-hero{padding:24px 0;}
+            .brand-stats{padding-top:20px;}
+            .form-pane{padding:32px 20px 64px;}
+            .legal{position:relative;margin-top:auto;padding:20px;}
+        }
+        @media(max-width:480px){
+            .brand-hero h1{font-size:1.7rem;}
+            .brand-stats{grid-template-columns:repeat(3,1fr);gap:12px;}
+            .stat-val{font-size:1.2rem;}
+            .login-card{padding:28px 22px;}
         }
     </style>
 </head>
 <body>
 
-    <section class="login-container">
-        <div class="login-card">
-            <h2>Sandronnes</h2>
-            <div class="input-group">
-                <input type="email" id="email" placeholder="E-mail de acesso" required>
+<div class="bg-grid"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="stage">
+
+    <!-- ─── BRAND PANE ─── -->
+    <section class="brand-pane">
+        <div class="brand-top">
+            <img src="assets/Sandronnes_logo.png" alt="Sandronnes">
+            <div class="brand-name">
+                <strong>Sandronnes</strong>
+                <span>Gestão · Drones</span>
             </div>
-            <div class="input-group">
-                <input type="password" id="password" placeholder="Sua senha" required>
-            </div>
-            <button onclick="fazerLogin()">ACESSAR</button>
         </div>
+
+        <div class="brand-hero">
+            <div class="brand-tag"><i class="fas fa-circle"></i> Sistema interno</div>
+            <h1>Controle total da sua <em>operação aérea</em>.</h1>
+            <p>Trabalhos, pagamentos, despesas, equipe e relatórios — tudo em um só lugar, com a precisão que a Sandronnes exige.</p>
+        </div>
+
+        <div></div>
     </section>
 
-    <script>
-        async function fazerLogin() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+    <!-- ─── FORM PANE ─── -->
+    <section class="form-pane">
+        <form class="login-card" onsubmit="event.preventDefault();fazerLogin();">
+            <div class="card-head">
+                <h2>Acessar sistema</h2>
+                <p>Entre com suas credenciais para continuar.</p>
+            </div>
 
-            if (!email || !password) {
-                alert("Por favor, preencha todos os campos.");
-                return;
+            <div class="alert" id="alert">
+                <i class="fas fa-circle-exclamation"></i>
+                <span id="alert-msg">Credenciais inválidas.</span>
+            </div>
+
+            <div class="input-group">
+                <label for="email">E-mail</label>
+                <div class="input-wrap">
+                    <input type="email" id="email" placeholder="voce@sandronnes.com.br" required autocomplete="username">
+                    <i class="fas fa-envelope"></i>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Senha</label>
+                <div class="input-wrap">
+                    <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+                    <i class="fas fa-lock"></i>
+                    <button type="button" class="toggle-pass" onclick="togglePass()" aria-label="Mostrar senha">
+                        <i class="fas fa-eye" id="eye-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btn-login" style="margin-top:8px">
+                Entrar <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+    </section>
+</div>
+
+<div class="legal">© 2026 <span>Sandronnes</span> · Tecnologia aérea para o agronegócio</div>
+
+<script>
+    function showAlert(msg){
+        const a=document.getElementById('alert');
+        document.getElementById('alert-msg').textContent=msg;
+        a.classList.remove('show');void a.offsetWidth;a.classList.add('show');
+    }
+
+    function togglePass(){
+        const inp=document.getElementById('password');
+        const icon=document.getElementById('eye-icon');
+        const show=inp.type==='password';
+        inp.type=show?'text':'password';
+        icon.className=show?'fas fa-eye-slash':'fas fa-eye';
+    }
+
+    async function fazerLogin() {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const btn = document.getElementById('btn-login');
+
+        if (!email || !password) {
+            showAlert('Preencha e-mail e senha para continuar.');
+            return;
+        }
+
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Autenticando...';
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                btn.innerHTML = '<i class="fas fa-check"></i> Acesso concedido';
+                window.location.href = result.redirect;
+            } else {
+                showAlert(result.message || 'Credenciais inválidas. Verifique e tente novamente.');
+                btn.disabled = false;
+                btn.innerHTML = original;
             }
+        } catch (error) {
+            console.error('Erro de autenticação no cliente:', error);
+            showAlert('Não foi possível conectar ao servidor.');
+            btn.disabled = false;
+            btn.innerHTML = original;
+        }
+    }
 
+    async function verificarSessaoAtiva() {
+        setTimeout(async () => {
             try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    window.location.href = result.redirect;
-                } else {
-                    alert(result.message || 'Erro ao tentar acessar. Verifique suas credenciais.');
+                const resposta = await fetch('/api/user', { method: 'GET' });
+                const result = await resposta.json();
+                if (resposta.ok && result.authenticated) {
+                    window.location.href = '/sistema';
                 }
-
-            } catch (error) {
-                console.error('Erro de autenticação no cliente:', error);
-                alert('Não foi possível conectar ao servidor de autenticação.');
+            } catch (e) {
+                console.log('Nenhuma sessão anterior ativa.');
             }
-        }
+        }, 100);
+    }
 
-        async function verificarSessaoAtiva() {
-            setTimeout(async () => {
-                try {
-                    const resposta = await fetch('/api/user', { method: 'GET' });
-                    const result = await resposta.json();
-                    
-                    if (resposta.ok && result.authenticated) {
-                        window.location.href = '/sistema';
-                    }
-                } catch (e) {
-                    console.log('Nenhuma sessão anterior ativa.');
-                }
-            }, 100);
-        }
-        
-        verificarSessaoAtiva();
-    </script>
+    verificarSessaoAtiva();
+</script>
 </body>
 </html>
