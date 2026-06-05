@@ -528,6 +528,55 @@ app.post('/api/register', requireAuth, requireAdmin, async (req, res) => {
     }
 });
 
+// ── LOGÍSTICA — ordem manual de execução ─────────────────────────────────────
+// Salva uma ordem global compartilhada entre todos os usuários.
+// Cada trabalho recebe um inteiro em ordem_logistica (1, 2, 3...).
+// Trabalhos sem ordem salva ficam com ordem_logistica = NULL e caem na ordem padrão.
+
+app.put('/api/logistica/ordem', requireAuth, requireWriteAccess, async (req, res) => {
+    const { ids } = req.body || {};
+    try {
+        if (!Array.isArray(ids)) throw new Error('Payload inválido: esperado { ids: [...] }');
+
+        // Limpa a ordem atual de TODOS os trabalhos não enviados (mantém só os da lista)
+        // e atribui posição 1..N para os ids recebidos, na ordem em que vieram.
+        const { error: clearErr } = await supabaseAdmin
+            .from('trabalhos')
+            .update({ ordem_logistica: null })
+            .not('ordem_logistica', 'is', null);
+        if (clearErr) throw clearErr;
+
+        // Atribui a nova ordem (Promise.all em paralelo)
+        if (ids.length) {
+            const updates = ids.map((id, i) =>
+                supabaseAdmin.from('trabalhos')
+                    .update({ ordem_logistica: i + 1 })
+                    .eq('id', id)
+            );
+            const results = await Promise.all(updates);
+            const erro = results.find(r => r.error);
+            if (erro) throw erro.error;
+        }
+        return res.json({ success: true });
+    } catch (e) {
+        console.error('[PUT /api/logistica/ordem] erro:', e);
+        return res.status(400).json({ message: e.message || String(e) });
+    }
+});
+
+app.delete('/api/logistica/ordem', requireAuth, requireWriteAccess, async (req, res) => {
+    try {
+        const { error } = await supabaseAdmin
+            .from('trabalhos')
+            .update({ ordem_logistica: null })
+            .not('ordem_logistica', 'is', null);
+        if (error) throw error;
+        return res.json({ success: true });
+    } catch (e) {
+        return res.status(400).json({ message: e.message || String(e) });
+    }
+});
+
 // ── USUÁRIOS (admin) ─────────────────────────────────────────────────────────
 // Sufixo interno para "emails falsos": username vira username@sandronnes.com.br
 const USER_DOMAIN = '@sandronnes.com.br';

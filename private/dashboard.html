@@ -706,6 +706,9 @@ body.readonly td.col-acoes{display:none !important;}
   box-shadow:0 12px 32px rgba(0,0,0,.4),0 0 0 1px var(--primary-border);
   cursor:grabbing;
 }
+body.readonly .drag-handle,
+body.readonly .log-hint,
+body.readonly .log-reset{display:none !important;}
 .log-pos{
   display:inline-flex;align-items:center;justify-content:center;
   min-width:24px;height:22px;padding:0 7px;
@@ -799,10 +802,10 @@ body.readonly td.col-acoes{display:none !important;}
         <h3><i class="fas fa-route" style="color:var(--primary);margin-right:6px"></i>Logística de atendimento</h3>
         <div style="display:flex;align-items:center;gap:10px">
           <span class="badge" id="badge-logistica">0</span>
-          <button class="btn-icon keep-readonly" onclick="resetarOrdemLogistica()" title="Restaurar ordem padrão" style="background:var(--primary-dim);color:var(--primary);"><i class="fas fa-rotate"></i></button>
+          <button class="btn-icon log-reset" onclick="resetarOrdemLogistica()" title="Restaurar ordem padrão" style="background:var(--primary-dim);color:var(--primary);"><i class="fas fa-rotate"></i></button>
         </div>
       </div>
-      <div style="padding:10px 18px 6px;font-size:.74rem;color:var(--muted);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)">
+      <div class="log-hint" style="padding:10px 18px 6px;font-size:.74rem;color:var(--muted);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)">
         <i class="fas fa-grip-vertical"></i>
         <span>Arraste o trabalho para reordenar a ordem de execução.</span>
       </div>
@@ -1386,40 +1389,54 @@ function renderMapa(){
 }
 
 // ── LOGÍSTICA ──
-const LOG_KEY='sandronnes-logistica-ordem';
 let leafletMapLog=null, leafletMarkersLog=[], sortableLog=null;
 
-function getOrdemLogistica(){
-  try{return JSON.parse(localStorage.getItem(LOG_KEY)||'[]');}catch{return [];}
+async function resetarOrdemLogistica(){
+  try{
+    const r=await fetch('/api/logistica/ordem',{method:'DELETE'});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Erro');
+    // Limpa em memória também
+    DB.trabalhos.forEach(t=>{ t.ordem_logistica=null; });
+    renderLogistica();
+    toast('Ordem restaurada.');
+  }catch(e){toast(e.message,1);}
 }
-function setOrdemLogistica(ids){
-  localStorage.setItem(LOG_KEY,JSON.stringify(ids));
-}
-function resetarOrdemLogistica(){
-  localStorage.removeItem(LOG_KEY);
-  renderLogistica();
-  toast('Ordem restaurada.');
+
+async function salvarOrdemLogistica(ids){
+  try{
+    const r=await fetch('/api/logistica/ordem',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ids})
+    });
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Erro');
+    // Atualiza em memória: limpa todos e atribui 1..N para os ids enviados
+    DB.trabalhos.forEach(t=>{ t.ordem_logistica=null; });
+    ids.forEach((id,i)=>{
+      const t=DB.trabalhos.find(x=>x.id===id);
+      if(t) t.ordem_logistica=i+1;
+    });
+  }catch(e){toast('Falha ao salvar ordem: '+e.message,1);}
 }
 
 function ordenarLogistica(items){
-  // Ordem salva tem prioridade. Itens novos entram conforme ordenação padrão.
-  const salvos=getOrdemLogistica();
-  const mapaPos=new Map(salvos.map((id,i)=>[id,i]));
+  // Itens com ordem_logistica salva no banco vêm primeiro, na ordem salva.
+  // Itens sem ordem caem na ordenação padrão (data_execucao, depois status).
+  const comOrdem=items.filter(t=>t.ordem_logistica!=null)
+                      .sort((a,b)=>a.ordem_logistica-b.ordem_logistica);
+  const semOrdem=items.filter(t=>t.ordem_logistica==null);
 
-  // Ordem padrão: data_execucao ASC, depois "Em andamento" antes de "Aguardando"
   const statusOrder={'Em andamento':0,'Aguardando':1};
-  const padrao=[...items].sort((a,b)=>{
+  semOrdem.sort((a,b)=>{
     const da=a.data_execucao||'9999-12-31';
     const db=b.data_execucao||'9999-12-31';
     if(da!==db) return da.localeCompare(db);
     return (statusOrder[a.status_trabalho]??9)-(statusOrder[b.status_trabalho]??9);
   });
 
-  // Quem está salvo vem primeiro na ordem salva; quem não está vem depois (na ordem padrão)
-  const salvosSet=new Set(salvos);
-  const noSalvo=padrao.filter(t=>!salvosSet.has(t.id));
-  const noOrdem=salvos.map(id=>items.find(t=>t.id===id)).filter(Boolean);
-  return [...noOrdem,...noSalvo];
+  return [...comOrdem,...semOrdem];
 }
 
 function statusLogTag(s){
@@ -1449,21 +1466,23 @@ function renderLogistica(){
       </tr>`;
     }).join('');
 
-    // Inicializa SortableJS uma única vez por render
-    if(sortableLog){sortableLog.destroy();}
-    sortableLog=Sortable.create(tbody,{
-      animation:180,
-      handle:'.drag-handle',
-      ghostClass:'sortable-ghost',
-      chosenClass:'sortable-chosen',
-      dragClass:'sortable-drag',
-      onEnd:()=>{
-        const ids=[...tbody.querySelectorAll('tr[data-id]')].map(tr=>tr.dataset.id);
-        setOrdemLogistica(ids);
-        // Re-renderiza só para atualizar os números de posição
-        renderLogistica();
-      }
-    });
+    // Inicializa SortableJS uma única vez por render — só para Administrador
+    if(sortableLog){sortableLog.destroy();sortableLog=null;}
+    if(window.USER_PAPEL==='Administrador'){
+      sortableLog=Sortable.create(tbody,{
+        animation:180,
+        handle:'.drag-handle',
+        ghostClass:'sortable-ghost',
+        chosenClass:'sortable-chosen',
+        dragClass:'sortable-drag',
+        onEnd:async()=>{
+          const ids=[...tbody.querySelectorAll('tr[data-id]')].map(tr=>tr.dataset.id);
+          await salvarOrdemLogistica(ids);
+          // Re-renderiza só para atualizar os números de posição
+          renderLogistica();
+        }
+      });
+    }
   }
 
   // Mapa
