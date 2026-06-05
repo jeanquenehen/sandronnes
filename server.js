@@ -507,7 +507,7 @@ const PAPEIS_VALIDOS = ['Administrador', 'Sócio', 'Operador', 'Representante'];
 
 app.get('/api/usuarios', requireAuth, async (req, res) => {
     try {
-        const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        const { data, error } = await supabaseAdmin.auth.admin.listUsers();
         if (error) throw error;
         const lista = (data.users || []).map(u => ({
             id: u.id,
@@ -519,7 +519,8 @@ app.get('/api/usuarios', requireAuth, async (req, res) => {
         }));
         return res.json(lista);
     } catch (e) {
-        return res.status(500).json({ message: e.message });
+        console.error('[GET /api/usuarios] erro:', e);
+        return res.status(500).json({ message: e.message || String(e) });
     }
 });
 
@@ -544,7 +545,8 @@ app.post('/api/usuarios', requireAuth, async (req, res) => {
         if (error) throw error;
         return res.json({ success: true, id: data.user.id });
     } catch (e) {
-        return res.status(400).json({ message: e.message });
+        console.error('[POST /api/usuarios] erro:', e);
+        return res.status(400).json({ message: e.message || String(e) });
     }
 });
 
