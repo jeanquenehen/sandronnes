@@ -1694,7 +1694,7 @@ async function exportarPDF(){
 
         doc.setFillColor(ri%2===0?255:248,ri%2===0?255:250,ri%2===0?255:252);
         doc.rect(margin,y,tableW,6,'F');
-        doc.setTextColor(44,62,80);doc.setFontSize(8);doc.setFont('helvetica','normal');
+        doc.setTextColor(44,62,80);doc.setFontSize(8);doc.setFont('helvetica','bold');
         rowData.forEach((cell,i)=>{
           const txt=doc.splitTextToSize(cell,cw-4)[0]||'—';
           doc.text(txt,margin+i*cw+2,y+4.5);
