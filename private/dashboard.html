@@ -1773,7 +1773,7 @@ function toast(msg,err=0){const el=document.getElementById('toast');document.get
 function toggleTheme(){const dark=document.documentElement.getAttribute('data-theme')!=='dark';document.documentElement.setAttribute('data-theme',dark?'dark':'light');document.getElementById('theme-icon').className=dark?'fas fa-sun':'fas fa-moon';document.getElementById('theme-lbl').textContent=dark?'Modo claro':'Modo escuro';localStorage.setItem('sandronnes-theme',dark?'dark':'light');if(document.getElementById('sec-dashboard').classList.contains('active'))loadDashboard();}
 function applyTheme(){const t=localStorage.getItem('sandronnes-theme')||'dark';document.documentElement.setAttribute('data-theme',t);if(t==='light'){document.getElementById('theme-icon').className='fas fa-moon';document.getElementById('theme-lbl').textContent='Modo escuro';}else{document.getElementById('theme-icon').className='fas fa-sun';document.getElementById('theme-lbl').textContent='Modo claro';}}
 
-// Spotlight effect — mouse tracking nos KPIs
+// Spotlight effect — mouse tracking nos KPI
 document.addEventListener('mousemove',e=>{
   document.querySelectorAll('.kpi').forEach(k=>{
     const r=k.getBoundingClientRect();
