@@ -130,7 +130,6 @@ aside{
 }
 .logo-img{
   height:32px;width:auto;
-  filter:drop-shadow(0 0 12px var(--primary-glow));
   transition:transform .5s var(--ease);
 }
 .logo:hover .logo-img{transform:rotate(8deg) scale(1.1);}
@@ -225,7 +224,6 @@ main{
 }
 .page-header h2 i{
   color:var(--primary);
-  filter:drop-shadow(0 0 10px var(--primary-glow));
   animation:pulse 3s ease-in-out infinite;
 }
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
@@ -530,22 +528,13 @@ tbody td{padding:12px 18px;font-size:.84rem;font-variant-numeric:tabular-nums;}
   opacity:0;
   transition:opacity .4s var(--ease);
 }
-.kpi::after{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:radial-gradient(circle at var(--mx,50%) var(--my,0%),rgba(16,217,126,.18) 0%,transparent 60%);
-  opacity:0;
-  transition:opacity .4s var(--ease);
-  pointer-events:none;
-}
+.kpi::after{display:none;}
 .kpi:hover{
   transform:translateY(-4px);
   border-color:var(--border-h);
   box-shadow:0 6px 18px rgba(0,0,0,0.25),0 0 0 1px rgba(16,217,126,0.12);
 }
 .kpi:hover::before{opacity:1;}
-.kpi:hover::after{opacity:1;}
 .kpi.accent{
   background:linear-gradient(135deg,var(--primary) 0%,var(--primary-deep) 100%);
   color:#fff;
@@ -1180,11 +1169,11 @@ function renderTrabalhos(){
     const desps=DB.despesas.filter(dd=>dd.trabalho_id===t.id);
 
     const pagsHtml=pags.length
-      ?`<table><thead><tr><th>Data</th><th>Valor</th><th>Descrição</th></tr></thead><tbody>${pags.map(p=>`<tr><td>${fmtDate(p.data_pagamento)}</td><td>${brl(p.valor)}</td><td>${esc(p.descricao||'—')}</td></tr>`).join('')}</tbody></table>`
+      ?`<table><thead><tr><th>Data</th><th>Valor</th><th>Descrição</th></tr></thead><tbody>${pags.map(p=>`<tr><td>${fmtDate(p.data_pagamento)}</td><td style="color:var(--info);font-weight:600">${brl(p.valor)}</td><td>${esc(p.descricao||'—')}</td></tr>`).join('')}</tbody></table>`
       :'<div class="detail-empty">Nenhum pagamento registrado.</div>';
 
     const despsHtml=desps.length
-      ?`<table><thead><tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Descrição</th></tr></thead><tbody>${desps.map(dd=>`<tr><td>${fmtDate(dd.data)}</td><td>${esc(dd.tipo||'—')}</td><td>${brl(dd.valor)}</td><td>${esc(dd.descricao||'—')}</td></tr>`).join('')}</tbody></table>`
+      ?`<table><thead><tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Descrição</th></tr></thead><tbody>${desps.map(dd=>`<tr><td>${fmtDate(dd.data)}</td><td>${esc(dd.tipo||'—')}</td><td style="color:var(--danger);font-weight:600">${brl(dd.valor)}</td><td>${esc(dd.descricao||'—')}</td></tr>`).join('')}</tbody></table>`
       :'<div class="detail-empty">Nenhuma despesa registrada.</div>';
 
     return`<tr class="row-toggle" onclick="toggleDetail('${t.id}',this)">
