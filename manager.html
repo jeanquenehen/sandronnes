@@ -393,10 +393,10 @@
             </div>
 
             <div class="input-group">
-                <label for="email">E-mail</label>
+                <label for="email">Usuário</label>
                 <div class="input-wrap">
-                    <input type="email" id="email" placeholder="voce@sandronnes.com.br" required autocomplete="username">
-                    <i class="fas fa-envelope"></i>
+                    <input type="text" id="email" placeholder="seu.usuario" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+                    <i class="fas fa-user"></i>
                 </div>
             </div>
 
@@ -436,14 +436,17 @@
     }
 
     async function fazerLogin() {
-        const email = document.getElementById('email').value.trim();
+        let userInput = document.getElementById('email').value.trim().toLowerCase();
         const password = document.getElementById('password').value;
         const btn = document.getElementById('btn-login');
 
-        if (!email || !password) {
-            showAlert('Preencha e-mail e senha para continuar.');
+        if (!userInput || !password) {
+            showAlert('Preencha usuário e senha para continuar.');
             return;
         }
+
+        // Se o usuário não digitou um e-mail completo, acrescenta o sufixo interno
+        const email = userInput.includes('@') ? userInput : `${userInput}@sandronnes.com.br`;
 
         const original = btn.innerHTML;
         btn.disabled = true;

@@ -468,9 +468,10 @@ app.get('/api/user', async (req, res) => {
             const { data: refreshed, error: rErr } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
             if (rErr || !refreshed.session) throw new Error();
             setCookies(res, refreshed.session);
-            return res.json({ authenticated: true, user: { email: refreshed.session.user.email } });
+            const ru = refreshed.session.user;
+            return res.json({ authenticated: true, user: { email: ru.email, nome: ru.user_metadata?.nome || '', papel: ru.user_metadata?.papel || '' } });
         }
-        return res.json({ authenticated: true, user: { email: user.email } });
+        return res.json({ authenticated: true, user: { email: user.email, nome: user.user_metadata?.nome || '', papel: user.user_metadata?.papel || '' } });
     } catch {
         clearCookies(res);
         return res.status(401).json({ authenticated: false });

@@ -705,7 +705,7 @@ tbody td{padding:12px 18px;font-size:.84rem;font-variant-numeric:tabular-nums;}
     <div class="user-info">
       <div style="text-align:right">
         <div id="user-email" style="font-weight:600;font-size:.83rem;">carregando...</div>
-        <div style="font-size:.73rem;color:var(--muted);">Administrador</div>
+        <div id="user-papel" style="font-size:.73rem;color:var(--muted);">—</div>
       </div>
       <div class="avatar"><i class="fas fa-user-tie"></i></div>
     </div>
@@ -1081,8 +1081,15 @@ const FILTERED={};
 let editState={},delState={},charts={};
 
 async function checkSession(){
-  try{const r=await fetch('/api/user'),d=await r.json();if(r.ok&&d.authenticated){document.getElementById('user-email').textContent=d.user.email;}else{location.href='/manager.html';}}
-  catch{location.href='/manager.html';}
+  try{
+    const r=await fetch('/api/user'),d=await r.json();
+    if(r.ok&&d.authenticated){
+      const u=d.user||{};
+      const nome=u.nome||(u.email||'').split('@')[0]||'Usuário';
+      document.getElementById('user-email').textContent=nome;
+      document.getElementById('user-papel').textContent=u.papel||'Usuário';
+    }else{location.href='/manager.html';}
+  }catch{location.href='/manager.html';}
 }
 async function logout(){await fetch('/api/logout',{method:'POST'});location.href='/manager.html';}
 
