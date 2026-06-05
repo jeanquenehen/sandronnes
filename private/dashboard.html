@@ -670,6 +670,25 @@ tbody td{padding:12px 18px;font-size:.84rem;font-variant-numeric:tabular-nums;}
 .detail-empty{font-size:.78rem;color:var(--muted);font-style:italic;}
 @media(max-width:768px){.detail-inner{grid-template-columns:1fr;}}
 
+/* ━━━ READ-ONLY MODE (Sócio e demais não-admin) ━━━ */
+body.readonly .btn-primary,
+body.readonly .action-btns,
+body.readonly .btn-icon.btn-edit,
+body.readonly .btn-icon.btn-del{display:none !important;}
+body.readonly thead th:last-child,
+body.readonly tbody td:last-child{display:none !important;}
+.readonly-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.62rem;font-weight:700;
+  color:var(--warning);
+  background:rgba(255,184,0,.1);
+  border:1px solid rgba(255,184,0,.3);
+  padding:3px 10px;border-radius:100px;
+  text-transform:uppercase;letter-spacing:.1em;
+  margin-left:8px;
+}
+.readonly-badge i{font-size:.6rem;}
+
 /* ━━━ SCROLLBAR ━━━ */
 ::-webkit-scrollbar{width:10px;height:10px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -1086,8 +1105,18 @@ async function checkSession(){
     if(r.ok&&d.authenticated){
       const u=d.user||{};
       const nome=u.nome||(u.email||'').split('@')[0]||'Usuário';
+      const papel=u.papel||'Usuário';
+      window.USER_PAPEL=papel;
       document.getElementById('user-email').textContent=nome;
-      document.getElementById('user-papel').textContent=u.papel||'Usuário';
+      document.getElementById('user-papel').textContent=papel;
+      // Modo somente-leitura para qualquer papel que não seja Administrador
+      if(papel!=='Administrador'){
+        document.body.classList.add('readonly');
+        const pageTitle=document.getElementById('page-title');
+        if(pageTitle&&!pageTitle.querySelector('.readonly-badge')){
+          pageTitle.insertAdjacentHTML('beforeend','<span class="readonly-badge"><i class="fas fa-eye"></i> Somente leitura</span>');
+        }
+      }
     }else{location.href='/manager.html';}
   }catch{location.href='/manager.html';}
 }

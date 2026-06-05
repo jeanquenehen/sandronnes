@@ -120,6 +120,35 @@ function filtrarCampos(body, campos) {
     return out;
 }
 
+// ── CONTROLE DE ACESSO POR PAPEL ─────────────────────────────────────────────
+// Papéis:
+//   Administrador — acesso total
+//   Sócio         — somente leitura
+//   Operador      — (definir depois)
+//   Representante — (definir depois)
+
+function getPapel(req) {
+    return req.user?.user_metadata?.papel || null;
+}
+
+// Bloqueia escrita (POST/PUT/DELETE) para qualquer papel que não seja Administrador.
+function requireWriteAccess(req, res, next) {
+    if (getPapel(req) === 'Administrador') return next();
+    return res.status(403).json({ message: 'Você não tem permissão para realizar esta ação.' });
+}
+
+// Bloqueia rota inteira para qualquer papel que não seja Administrador (gestão de usuários).
+function requireAdmin(req, res, next) {
+    if (getPapel(req) === 'Administrador') return next();
+    return res.status(403).json({ message: 'Acesso restrito a administradores.' });
+}
+
+// Aplica requireWriteAccess automaticamente a POST/PUT/DELETE de rotas /api/* específicas.
+function gateWrites(req, res, next) {
+    if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
+    return requireWriteAccess(req, res, next);
+}
+
 // ── DIVISÃO ENTRE SÓCIOS ─────────────────────────────────────────────────────
 // Recalcula sandro_recebe e rafael_recebe no trabalho após qualquer
 // alteração nas despesas vinculadas a ele.
@@ -207,7 +236,7 @@ function crudRoutes(router, tabela, campos) {
     });
 
     // POST — cria novo
-    router.post(`/api/${tabela}`, requireAuth, async (req, res) => {
+    router.post(`/api/${tabela}`, requireAuth, requireWriteAccess, async (req, res) => {
         try {
             const payload = filtrarCampos(req.body, campos);
             const { data, error } = await req.db
@@ -225,7 +254,7 @@ function crudRoutes(router, tabela, campos) {
     });
 
     // PUT — atualiza por id
-    router.put(`/api/${tabela}/:id`, requireAuth, async (req, res) => {
+    router.put(`/api/${tabela}/:id`, requireAuth, requireWriteAccess, async (req, res) => {
         try {
             const payload = filtrarCampos(req.body, campos);
             const { data, error } = await req.db
@@ -243,7 +272,7 @@ function crudRoutes(router, tabela, campos) {
     });
 
     // DELETE — remove por id
-    router.delete(`/api/${tabela}/:id`, requireAuth, async (req, res) => {
+    router.delete(`/api/${tabela}/:id`, requireAuth, requireWriteAccess, async (req, res) => {
         try {
             // Para despesas, busca o trabalho_id ANTES de deletar
             let trabalhoId = null;
@@ -281,7 +310,7 @@ app.get('/api/trabalhos', requireAuth, async (req, res) => {
     }
 });
 
-app.post('/api/trabalhos', requireAuth, async (req, res) => {
+app.post('/api/trabalhos', requireAuth, requireWriteAccess, async (req, res) => {
     try {
         const campos = ['cliente_id','operador_id','representante_id','servico',
             'dimensao_ha','valor_ha','valor_total','ganho_operador',
@@ -326,7 +355,7 @@ app.post('/api/trabalhos', requireAuth, async (req, res) => {
     }
 });
 
-app.put('/api/trabalhos/:id', requireAuth, async (req, res) => {
+app.put('/api/trabalhos/:id', requireAuth, requireWriteAccess, async (req, res) => {
     try {
         const campos = ['cliente_id','operador_id','representante_id','servico',
             'dimensao_ha','valor_ha','valor_total','ganho_operador',
@@ -344,7 +373,7 @@ app.put('/api/trabalhos/:id', requireAuth, async (req, res) => {
     }
 });
 
-app.delete('/api/trabalhos/:id', requireAuth, async (req, res) => {
+app.delete('/api/trabalhos/:id', requireAuth, requireWriteAccess, async (req, res) => {
     try {
         const { error } = await req.db.from('trabalhos').delete().eq('id', req.params.id);
         if (error) throw error;
@@ -383,7 +412,7 @@ app.get('/api/investimentos', requireAuth, async (req, res) => {
         res.status(500).json({ success: false, message: e.message });
     }
 });
-app.post('/api/investimentos', requireAuth, async (req, res) => {
+app.post('/api/investimentos', requireAuth, requireWriteAccess, async (req, res) => {
     try {
         const payload = filtrarCampos(req.body, ['data', 'valor', 'descricao']);
         const { data, error } = await req.db
@@ -395,7 +424,7 @@ app.post('/api/investimentos', requireAuth, async (req, res) => {
         res.status(400).json({ success: false, message: e.message });
     }
 });
-app.put('/api/investimentos/:id', requireAuth, async (req, res) => {
+app.put('/api/investimentos/:id', requireAuth, requireWriteAccess, async (req, res) => {
     try {
         const payload = filtrarCampos(req.body, ['data', 'valor', 'descricao']);
         const { data, error } = await req.db
@@ -407,7 +436,7 @@ app.put('/api/investimentos/:id', requireAuth, async (req, res) => {
         res.status(400).json({ success: false, message: e.message });
     }
 });
-app.delete('/api/investimentos/:id', requireAuth, async (req, res) => {
+app.delete('/api/investimentos/:id', requireAuth, requireWriteAccess, async (req, res) => {
     try {
         const { error } = await req.db
             .from('investimentos').delete().eq('id', req.params.id);
@@ -483,7 +512,7 @@ app.post('/api/logout', (req, res) => {
     return res.json({ success: true });
 });
 
-app.post('/api/register', requireAuth, async (req, res) => {
+app.post('/api/register', requireAuth, requireAdmin, async (req, res) => {
     const { nome, email, password, perfil } = req.body;
     try {
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -506,7 +535,7 @@ const toEmail = u => String(u || '').trim().toLowerCase() + USER_DOMAIN;
 const toUsername = email => String(email || '').replace(USER_DOMAIN, '');
 const PAPEIS_VALIDOS = ['Administrador', 'Sócio', 'Operador', 'Representante'];
 
-app.get('/api/usuarios', requireAuth, async (req, res) => {
+app.get('/api/usuarios', requireAuth, requireAdmin, async (req, res) => {
     try {
         const { data, error } = await supabaseAdmin.auth.admin.listUsers();
         if (error) throw error;
@@ -525,7 +554,7 @@ app.get('/api/usuarios', requireAuth, async (req, res) => {
     }
 });
 
-app.post('/api/usuarios', requireAuth, async (req, res) => {
+app.post('/api/usuarios', requireAuth, requireAdmin, async (req, res) => {
     const { username, password, nome, papel } = req.body || {};
     try {
         if (!username || !/^[a-z0-9._-]{2,}$/i.test(username))
@@ -551,7 +580,7 @@ app.post('/api/usuarios', requireAuth, async (req, res) => {
     }
 });
 
-app.put('/api/usuarios/:id', requireAuth, async (req, res) => {
+app.put('/api/usuarios/:id', requireAuth, requireAdmin, async (req, res) => {
     const { id } = req.params;
     const { username, password, nome, papel } = req.body || {};
     try {
@@ -576,7 +605,7 @@ app.put('/api/usuarios/:id', requireAuth, async (req, res) => {
     }
 });
 
-app.delete('/api/usuarios/:id', requireAuth, async (req, res) => {
+app.delete('/api/usuarios/:id', requireAuth, requireAdmin, async (req, res) => {
     try {
         const { error } = await supabaseAdmin.auth.admin.deleteUser(req.params.id);
         if (error) throw error;

@@ -389,6 +389,11 @@ async function checkSession(){
   try{
     const r=await fetch('/api/user');const d=await r.json();
     if(!(r.ok&&d.authenticated)){location.href='/manager.html';return false;}
+    if(d.user?.papel!=='Administrador'){
+      alert('Acesso restrito a administradores.');
+      location.href='/sistema';
+      return false;
+    }
     return true;
   }catch{location.href='/manager.html';return false;}
 }
