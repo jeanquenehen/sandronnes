@@ -11,6 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 /* ━━━ RESET ━━━ */
@@ -689,6 +690,30 @@ body.readonly td.col-acoes{display:none !important;}
 }
 .readonly-badge i{font-size:.6rem;}
 
+/* ━━━ LOGÍSTICA — drag rows ━━━ */
+.drag-handle{
+  cursor:grab;color:var(--muted);
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:5px;
+  transition:color .2s,background .2s;
+}
+.drag-handle:hover{color:var(--primary);background:var(--primary-dim);}
+#tbody-logistica tr{transition:background .2s;}
+#tbody-logistica tr.sortable-ghost{opacity:.3;background:var(--primary-dim);}
+#tbody-logistica tr.sortable-chosen{background:var(--row-hover);}
+#tbody-logistica tr.sortable-drag{
+  background:var(--card-solid);
+  box-shadow:0 12px 32px rgba(0,0,0,.4),0 0 0 1px var(--primary-border);
+  cursor:grabbing;
+}
+.log-pos{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:24px;height:22px;padding:0 7px;
+  background:var(--primary-dim);color:var(--primary);
+  border-radius:5px;font-size:.7rem;font-weight:700;
+  font-family:'JetBrains Mono',monospace;letter-spacing:.3px;
+}
+
 /* ━━━ SCROLLBAR ━━━ */
 ::-webkit-scrollbar{width:10px;height:10px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -704,6 +729,7 @@ body.readonly td.col-acoes{display:none !important;}
   <nav><ul>
     <li class="active" onclick="navTo('dashboard',this)"><i class="fas fa-chart-pie"></i> Dashboard</li>
     <li onclick="navTo('trabalhos',this)"><i class="fas fa-helicopter"></i> Trabalhos</li>
+    <li onclick="navTo('logistica',this)"><i class="fas fa-route"></i> Logística</li>
     <li onclick="navTo('pagamentos',this)"><i class="fas fa-file-invoice-dollar"></i> Pagamentos</li>
     <li onclick="navTo('despesas',this)"><i class="fas fa-receipt"></i> Despesas</li>
     <li onclick="navTo('clientes',this)"><i class="fas fa-map-marker-alt"></i> Clientes</li>
@@ -766,6 +792,35 @@ body.readonly td.col-acoes{display:none !important;}
   </div>
 
   <!-- PAGAMENTOS -->
+  <!-- LOGÍSTICA -->
+  <div class="section" id="sec-logistica">
+    <div class="table-card">
+      <div class="table-head">
+        <h3><i class="fas fa-route" style="color:var(--primary);margin-right:6px"></i>Logística de atendimento</h3>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="badge" id="badge-logistica">0</span>
+          <button class="btn-icon keep-readonly" onclick="resetarOrdemLogistica()" title="Restaurar ordem padrão" style="background:var(--primary-dim);color:var(--primary);"><i class="fas fa-rotate"></i></button>
+        </div>
+      </div>
+      <div style="padding:10px 18px 6px;font-size:.74rem;color:var(--muted);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)">
+        <i class="fas fa-grip-vertical"></i>
+        <span>Arraste as linhas para reordenar. A ordem é salva automaticamente neste navegador.</span>
+      </div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th style="width:36px"></th><th>Cliente</th><th>Serviço</th><th>Data de execução</th><th>Situação</th></tr></thead>
+        <tbody id="tbody-logistica"><tr><td colspan="5"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando...</p></div></td></tr></tbody>
+      </table></div>
+    </div>
+
+    <div class="table-card" style="margin-top:18px;padding:0;overflow:hidden;">
+      <div class="table-head" style="padding:18px 22px 14px">
+        <h3><i class="fas fa-map" style="color:var(--primary);margin-right:6px"></i>Mapa dos trabalhos</h3>
+        <span class="badge" id="badge-mapa-log">0</span>
+      </div>
+      <div id="leaflet-map-log" style="height:480px;width:100%;z-index:1;"></div>
+    </div>
+  </div>
+
   <div class="section" id="sec-pagamentos">
     <div class="actions-bar">
       <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Buscar por trabalho ou descrição..." oninput="filtrar('pagamentos',this.value)"></div>
@@ -1122,7 +1177,7 @@ async function checkSession(){
 }
 async function logout(){await fetch('/api/logout',{method:'POST'});location.href='/manager.html';}
 
-const sectionMeta={dashboard:{title:'Dashboard',icon:'chart-pie'},trabalhos:{title:'Trabalhos',icon:'helicopter'},pagamentos:{title:'Pagamentos',icon:'file-invoice-dollar'},despesas:{title:'Despesas',icon:'receipt'},clientes:{title:'Clientes',icon:'map-marker-alt'},equipe:{title:'Equipe',icon:'users-gear'},mapa:{title:'Mapa',icon:'map'},investimentos:{title:'Investimentos',icon:'chart-line'},relatorios:{title:'Relatórios',icon:'chart-bar'}};
+const sectionMeta={dashboard:{title:'Dashboard',icon:'chart-pie'},trabalhos:{title:'Trabalhos',icon:'helicopter'},logistica:{title:'Logística',icon:'route'},pagamentos:{title:'Pagamentos',icon:'file-invoice-dollar'},despesas:{title:'Despesas',icon:'receipt'},clientes:{title:'Clientes',icon:'map-marker-alt'},equipe:{title:'Equipe',icon:'users-gear'},mapa:{title:'Mapa',icon:'map'},investimentos:{title:'Investimentos',icon:'chart-line'},relatorios:{title:'Relatórios',icon:'chart-bar'}};
 function navTo(sec,liEl){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
@@ -1134,6 +1189,7 @@ function navTo(sec,liEl){
   if(sec==='dashboard')loadDashboard();
   if(sec==='relatorios')initRelatorio();
   if(sec==='mapa')renderMapa();
+  if(sec==='logistica')renderLogistica();
   if(sec==='investimentos')renderInvestimentos();
 }
 
@@ -1327,6 +1383,129 @@ function renderMapa(){
   if(bounds.length>0) leafletMap.fitBounds(bounds,{padding:[60,60],maxZoom:8});
   // Força resize após mostrar a seção
   setTimeout(()=>leafletMap.invalidateSize(),100);
+}
+
+// ── LOGÍSTICA ──
+const LOG_KEY='sandronnes-logistica-ordem';
+let leafletMapLog=null, leafletMarkersLog=[], sortableLog=null;
+
+function getOrdemLogistica(){
+  try{return JSON.parse(localStorage.getItem(LOG_KEY)||'[]');}catch{return [];}
+}
+function setOrdemLogistica(ids){
+  localStorage.setItem(LOG_KEY,JSON.stringify(ids));
+}
+function resetarOrdemLogistica(){
+  localStorage.removeItem(LOG_KEY);
+  renderLogistica();
+  toast('Ordem restaurada.');
+}
+
+function ordenarLogistica(items){
+  // Ordem salva tem prioridade. Itens novos entram conforme ordenação padrão.
+  const salvos=getOrdemLogistica();
+  const mapaPos=new Map(salvos.map((id,i)=>[id,i]));
+
+  // Ordem padrão: data_execucao ASC, depois "Em andamento" antes de "Aguardando"
+  const statusOrder={'Em andamento':0,'Aguardando':1};
+  const padrao=[...items].sort((a,b)=>{
+    const da=a.data_execucao||'9999-12-31';
+    const db=b.data_execucao||'9999-12-31';
+    if(da!==db) return da.localeCompare(db);
+    return (statusOrder[a.status_trabalho]??9)-(statusOrder[b.status_trabalho]??9);
+  });
+
+  // Quem está salvo vem primeiro na ordem salva; quem não está vem depois (na ordem padrão)
+  const salvosSet=new Set(salvos);
+  const noSalvo=padrao.filter(t=>!salvosSet.has(t.id));
+  const noOrdem=salvos.map(id=>items.find(t=>t.id===id)).filter(Boolean);
+  return [...noOrdem,...noSalvo];
+}
+
+function statusLogTag(s){
+  if(s==='Em andamento') return '<span class="tag tag-blue">Em andamento</span>';
+  if(s==='Aguardando')   return '<span class="tag tag-orange">Aguardando</span>';
+  return `<span class="tag tag-gray">${esc(s||'—')}</span>`;
+}
+
+function renderLogistica(){
+  const ativos=DB.trabalhos.filter(t=>t.status_trabalho==='Aguardando'||t.status_trabalho==='Em andamento');
+  const ordenados=ordenarLogistica(ativos);
+  document.getElementById('badge-logistica').textContent=ordenados.length+' reg.';
+
+  const tbody=document.getElementById('tbody-logistica');
+  if(!ordenados.length){
+    tbody.innerHTML=emptyRow(5,'Nenhum trabalho ativo no momento.');
+    if(sortableLog){sortableLog.destroy();sortableLog=null;}
+  }else{
+    tbody.innerHTML=ordenados.map((t,i)=>{
+      const cli=DB.clientes.find(c=>c.id===t.cliente_id);
+      return `<tr data-id="${t.id}">
+        <td><span class="drag-handle" title="Arraste para reordenar"><i class="fas fa-grip-vertical"></i></span></td>
+        <td><span class="log-pos">${i+1}</span> <strong>${esc(cli?.nome||'—')}</strong></td>
+        <td>${esc(t.servico||'—')}</td>
+        <td class="td-muted">${fmtDate(t.data_execucao)}</td>
+        <td>${statusLogTag(t.status_trabalho)}</td>
+      </tr>`;
+    }).join('');
+
+    // Inicializa SortableJS uma única vez por render
+    if(sortableLog){sortableLog.destroy();}
+    sortableLog=Sortable.create(tbody,{
+      animation:180,
+      handle:'.drag-handle',
+      ghostClass:'sortable-ghost',
+      chosenClass:'sortable-chosen',
+      dragClass:'sortable-drag',
+      onEnd:()=>{
+        const ids=[...tbody.querySelectorAll('tr[data-id]')].map(tr=>tr.dataset.id);
+        setOrdemLogistica(ids);
+        // Re-renderiza só para atualizar os números de posição
+        renderLogistica();
+      }
+    });
+  }
+
+  // Mapa
+  renderMapaLogistica(ordenados);
+}
+
+function renderMapaLogistica(trabalhos){
+  document.getElementById('badge-mapa-log').textContent=trabalhos.length+' trabalho'+(trabalhos.length!==1?'s':'');
+  if(!leafletMapLog){
+    leafletMapLog=L.map('leaflet-map-log').setView([-15.77972,-47.92972],7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom:19
+    }).addTo(leafletMapLog);
+  }
+  leafletMarkersLog.forEach(m=>m.remove());
+  leafletMarkersLog=[];
+  const bounds=[];
+  trabalhos.forEach((t,i)=>{
+    const cli=DB.clientes.find(c=>c.id===t.cliente_id);
+    if(!cli||!cli.latitude||!cli.longitude)return;
+    const lat=parseFloat(cli.latitude),lng=parseFloat(cli.longitude);
+    const cor=t.status_trabalho==='Em andamento'?'#3498db':'#f39c12';
+    const icon=L.divIcon({
+      className:'',
+      html:`<div style="background:${cor};color:#fff;min-width:24px;height:24px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700">${i+1}</div>`,
+      iconSize:[24,24],iconAnchor:[12,12]
+    });
+    const op=DB.operadores.find(o=>o.id===t.operador_id);
+    const popup=`<div class="map-popup">
+      <strong>${i+1}. ${esc(cli.nome)}</strong>
+      <span>${esc(t.servico||'—')} · ${t.dimensao_ha||'?'} ha</span>
+      <span>Execução: ${fmtDate(t.data_execucao)}</span>
+      <span>Operador: ${esc(op?.nome||'—')}</span>
+      <br><span class="tag ${t.status_trabalho==='Em andamento'?'tag-blue':'tag-orange'}">${esc(t.status_trabalho)}</span>
+    </div>`;
+    const marker=L.marker([lat,lng],{icon}).bindPopup(popup).addTo(leafletMapLog);
+    leafletMarkersLog.push(marker);
+    bounds.push([lat,lng]);
+  });
+  if(bounds.length>0) leafletMapLog.fitBounds(bounds,{padding:[60,60],maxZoom:8});
+  setTimeout(()=>leafletMapLog.invalidateSize(),100);
 }
 
 function loadDashboard(){
