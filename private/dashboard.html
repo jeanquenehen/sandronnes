@@ -674,9 +674,9 @@ tbody td{padding:12px 18px;font-size:.84rem;font-variant-numeric:tabular-nums;}
 body.readonly .btn-primary,
 body.readonly .action-btns,
 body.readonly .btn-icon.btn-edit,
-body.readonly .btn-icon.btn-del{display:none !important;}
-body.readonly thead th:last-child,
-body.readonly tbody td:last-child{display:none !important;}
+body.readonly .btn-icon.btn-del,
+body.readonly th.col-acoes,
+body.readonly td.col-acoes{display:none !important;}
 .readonly-badge{
   display:inline-flex;align-items:center;gap:6px;
   font-size:.62rem;font-weight:700;
@@ -1170,7 +1170,7 @@ function emptyRow(c,m='Nenhum registro encontrado.'){return`<tr><td colspan="${c
 function renderClientes(){
   const d=[...rows('clientes')].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
   document.getElementById('badge-clientes').textContent=d.length+' reg.';
-  document.getElementById('tbody-clientes').innerHTML=!d.length?emptyRow(6):d.map(c=>`<tr><td><strong>${esc(c.nome)}</strong></td><td class="td-muted">${esc(c.endereco||'—')}</td><td>${c.carteira?`<span class="tag tag-gray">${esc(c.carteira)}</span>`:'—'}</td><td class="td-muted">${c.latitude&&c.longitude?`${(+c.latitude).toFixed(4)}, ${(+c.longitude).toFixed(4)}`:'—'}</td><td class="td-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.descricao||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('cliente','${c.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('cliente','${c.id}','${esc(c.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
+  document.getElementById('tbody-clientes').innerHTML=!d.length?emptyRow(6):d.map(c=>`<tr><td><strong>${esc(c.nome)}</strong></td><td class="td-muted">${esc(c.endereco||'—')}</td><td>${c.carteira?`<span class="tag tag-gray">${esc(c.carteira)}</span>`:'—'}</td><td class="td-muted">${c.latitude&&c.longitude?`${(+c.latitude).toFixed(4)}, ${(+c.longitude).toFixed(4)}`:'—'}</td><td class="td-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.descricao||'—')}</td><td class="col-acoes"><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('cliente','${c.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('cliente','${c.id}','${esc(c.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function statusTrabTag(s){const m={'Aguardando':'tag-orange','Em andamento':'tag-blue','Concluído':'tag-green'};return`<span class="tag ${m[s]||'tag-gray'}" style="font-size:.68rem">${esc(s||'—')}</span>`;}
 
@@ -1225,7 +1225,7 @@ function renderTrabalhos(){
       <td class="td-muted">${fmtDate(t.data_execucao)}</td>
       <td>${statusTrabTag(t.status_trabalho)}</td>
       <td>${statusTag(t.status_pagamento)}</td>
-      <td><div class="action-btns" onclick="event.stopPropagation()">
+      <td class="col-acoes"><div class="action-btns" onclick="event.stopPropagation()">
         <button class="btn-icon btn-edit" onclick="openEdit('trabalho','${t.id}')"><i class="fas fa-pen"></i></button>
         <button class="btn-icon btn-del" onclick="openDel('trabalho','${t.id}','serviço ${esc(t.servico||'')}')"><i class="fas fa-trash"></i></button>
       </div></td>
@@ -1252,25 +1252,25 @@ function toggleDetail(id, rowEl){
 }
 function renderPagamentos(){
   const d=rows('pagamentos');document.getElementById('badge-pagamentos').textContent=d.length+' reg.';
-  document.getElementById('tbody-pagamentos').innerHTML=!d.length?emptyRow(5):d.map(p=>{const tr=DB.trabalhos.find(t=>t.id===p.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td><strong>${esc(cli?.nome||tr?.servico||'—')}</strong></td><td>${brl(p.valor)}</td><td class="td-muted">${fmtDate(p.data_pagamento)}</td><td class="td-muted">${esc(p.descricao||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('pagamento','${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('pagamento','${p.id}','pagamento de ${brl(p.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
+  document.getElementById('tbody-pagamentos').innerHTML=!d.length?emptyRow(5):d.map(p=>{const tr=DB.trabalhos.find(t=>t.id===p.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td><strong>${esc(cli?.nome||tr?.servico||'—')}</strong></td><td>${brl(p.valor)}</td><td class="td-muted">${fmtDate(p.data_pagamento)}</td><td class="td-muted">${esc(p.descricao||'—')}</td><td class="col-acoes"><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('pagamento','${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('pagamento','${p.id}','pagamento de ${brl(p.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
 }
 function renderDespesas(){
   const d=rows('despesas');document.getElementById('badge-despesas').textContent=d.length+' reg.';
-  document.getElementById('tbody-despesas').innerHTML=!d.length?emptyRow(6):d.map(d=>{const tr=DB.trabalhos.find(t=>t.id===d.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td class="td-muted">${fmtDate(d.data)}</td><td><span class="tag tag-gray">${esc(d.tipo||'—')}</span></td><td>${esc(d.descricao||'—')}</td><td><strong>${brl(d.valor)}</strong></td><td class="td-muted">${esc(cli?.nome||tr?.servico||'—')}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('despesa','${d.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('despesa','${d.id}','despesa ${brl(d.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
+  document.getElementById('tbody-despesas').innerHTML=!d.length?emptyRow(6):d.map(d=>{const tr=DB.trabalhos.find(t=>t.id===d.trabalho_id),cli=tr?DB.clientes.find(c=>c.id===tr.cliente_id):null;return`<tr><td class="td-muted">${fmtDate(d.data)}</td><td><span class="tag tag-gray">${esc(d.tipo||'—')}</span></td><td>${esc(d.descricao||'—')}</td><td><strong>${brl(d.valor)}</strong></td><td class="td-muted">${esc(cli?.nome||tr?.servico||'—')}</td><td class="col-acoes"><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('despesa','${d.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('despesa','${d.id}','despesa ${brl(d.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('');
 }
 function renderDespesasGerais(){
   const d=rows('despesas_gerais');document.getElementById('badge-despesas-gerais').textContent=d.length+' reg.';
-  document.getElementById('tbody-despesas-gerais').innerHTML=!d.length?emptyRow(5):d.map(d=>`<tr><td class="td-muted">${fmtDate(d.data)}</td><td><span class="tag tag-blue">${esc(d.tipo||'—')}</span></td><td>${esc(d.descricao||'—')}</td><td><strong>${brl(d.valor)}</strong></td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('despesa_geral','${d.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('despesa_geral','${d.id}','despesa geral ${brl(d.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
+  document.getElementById('tbody-despesas-gerais').innerHTML=!d.length?emptyRow(5):d.map(d=>`<tr><td class="td-muted">${fmtDate(d.data)}</td><td><span class="tag tag-blue">${esc(d.tipo||'—')}</span></td><td>${esc(d.descricao||'—')}</td><td><strong>${brl(d.valor)}</strong></td><td class="col-acoes"><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('despesa_geral','${d.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('despesa_geral','${d.id}','despesa geral ${brl(d.valor)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function renderOperadores(){
   const d=[...rows('operadores')].sort((a,b)=>{if(a.status!==b.status)return a.status==='Ativo'?-1:1;return(a.nome||'').localeCompare(b.nome||'','pt-BR');});
   document.getElementById('badge-operadores').textContent=d.length+' reg.';
-  document.getElementById('tbody-operadores').innerHTML=!d.length?emptyRow(3):d.map(o=>`<tr><td><strong>${esc(o.nome)}</strong></td><td>${statusEquipe(o.status)}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('operador','${o.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('operador','${o.id}','${esc(o.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
+  document.getElementById('tbody-operadores').innerHTML=!d.length?emptyRow(3):d.map(o=>`<tr><td><strong>${esc(o.nome)}</strong></td><td>${statusEquipe(o.status)}</td><td class="col-acoes"><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('operador','${o.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('operador','${o.id}','${esc(o.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function renderRepresentantes(){
   const d=[...rows('representantes')].sort((a,b)=>{if(a.status!==b.status)return a.status==='Ativo'?-1:1;return(a.nome||'').localeCompare(b.nome||'','pt-BR');});
   document.getElementById('badge-representantes').textContent=d.length+' reg.';
-  document.getElementById('tbody-representantes').innerHTML=!d.length?emptyRow(3):d.map(r=>`<tr><td><strong>${esc(r.nome)}</strong></td><td>${statusEquipe(r.status)}</td><td><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('representante','${r.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('representante','${r.id}','${esc(r.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
+  document.getElementById('tbody-representantes').innerHTML=!d.length?emptyRow(3):d.map(r=>`<tr><td><strong>${esc(r.nome)}</strong></td><td>${statusEquipe(r.status)}</td><td class="col-acoes"><div class="action-btns"><button class="btn-icon btn-edit" onclick="openEdit('representante','${r.id}')"><i class="fas fa-pen"></i></button><button class="btn-icon btn-del" onclick="openDel('representante','${r.id}','${esc(r.nome)}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
 }
 function renderInvestimentos(){
   const d=[...rows('investimentos')].sort((a,b)=>((b.data||'').localeCompare(a.data||'')));
@@ -1279,7 +1279,7 @@ function renderInvestimentos(){
     <td class="td-muted">${fmtDate(i.data)}</td>
     <td>${esc(i.descricao||'—')}</td>
     <td><strong>${brl(i.valor)}</strong></td>
-    <td><div class="action-btns">
+    <td class="col-acoes"><div class="action-btns">
       <button class="btn-icon btn-edit" onclick="openEdit('investimento','${i.id}')"><i class="fas fa-pen"></i></button>
       <button class="btn-icon btn-del" onclick="openDel('investimento','${i.id}','investimento ${brl(i.valor)}')"><i class="fas fa-trash"></i></button>
     </div></td>
