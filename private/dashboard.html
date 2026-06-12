@@ -1250,8 +1250,8 @@ function renderTrabalhos(){
 
     // Divisão sócios: percentual sobre saldo
     const carteira=(cli?.carteira||'').toLowerCase();
-    const percS=carteira==='sandro'?0.60:0.50;
-    const percR=carteira==='sandro'?0.40:0.50;
+    const percS=carteira==='sandro'?0.50:0.50;
+    const percR=carteira==='sandro'?0.50:0.50;
     const sandroR=parseFloat((saldo*percS).toFixed(2));
     const rafaelR=parseFloat((saldo*percR).toFixed(2));
 
@@ -1638,7 +1638,7 @@ async function salvar(tipo){
   const btn=document.getElementById('btn-save-'+tipo);let payload;
   try{
     if(tipo==='cliente'){const nome=document.getElementById('c-nome').value.trim();if(!nome)throw new Error('Nome é obrigatório.');payload={nome,endereco:document.getElementById('c-endereco').value.trim()||null,latitude:parseFloat(document.getElementById('c-lat').value)||null,longitude:parseFloat(document.getElementById('c-lng').value)||null,carteira:document.getElementById('c-carteira').value||null,descricao:document.getElementById('c-descricao').value.trim()||null};}
-    else if(tipo==='trabalho'){const cli=document.getElementById('t-cliente').value,op=document.getElementById('t-operador').value,dim=parseFloat(document.getElementById('t-dimensao').value)||0,vha=parseBRL(document.getElementById('t-valor-ha').value);if(!cli)throw new Error('Selecione o cliente.');if(!op)throw new Error('Selecione o operador.');if(!dim)throw new Error('Informe a dimensão em ha.');const total=dim*vha,perc=percFaixa(dim),ganho=total*perc;payload={cliente_id:cli,servico:document.getElementById('t-servico').value.trim()||null,operador_id:op,representante_id:document.getElementById('t-representante').value||null,dimensao_ha:dim,valor_ha:vha,valor_total:total,ganho_operador:ganho,ganho_representante:ganho,data_pedido:document.getElementById('t-data-pedido').value||null,data_execucao:document.getElementById('t-data-exec').value||null,status_pagamento:document.getElementById('t-status').value,status_trabalho:document.getElementById('t-status-trab').value,saldo:total};}
+    else if(tipo==='trabalho'){const cli=document.getElementById('t-cliente').value,op=document.getElementById('t-operador').value,dim=parseFloat(document.getElementById('t-dimensao').value)||0,vha=parseBRL(document.getElementById('t-valor-ha').value);if(!cli)throw new Error('Selecione o cliente.');if(!dim)throw new Error('Informe a dimensão em ha.');const total=dim*vha,perc=percFaixa(dim),ganho=total*perc;payload={cliente_id:cli,servico:document.getElementById('t-servico').value.trim()||null,operador_id:op||null,representante_id:document.getElementById('t-representante').value||null,dimensao_ha:dim,valor_ha:vha,valor_total:total,ganho_operador:ganho,ganho_representante:ganho,data_pedido:document.getElementById('t-data-pedido').value||null,data_execucao:document.getElementById('t-data-exec').value||null,status_pagamento:document.getElementById('t-status').value,status_trabalho:document.getElementById('t-status-trab').value,saldo:total};}
     else if(tipo==='pagamento'){const tr=document.getElementById('p-trabalho').value,vl=parseBRL(document.getElementById('p-valor').value);if(!tr)throw new Error('Selecione o trabalho.');if(!vl)throw new Error('Informe o valor.');payload={trabalho_id:tr,valor:vl,data_pagamento:document.getElementById('p-pagamento').value||null,descricao:document.getElementById('p-descricao').value.trim()||null};}
     else if(tipo==='despesa'){const tr=document.getElementById('d-trabalho').value,vl=parseBRL(document.getElementById('d-valor').value);if(!tr)throw new Error('Selecione o trabalho.');if(!vl)throw new Error('Informe o valor.');payload={trabalho_id:tr,data:document.getElementById('d-data').value||null,tipo:document.getElementById('d-tipo').value,valor:vl,descricao:document.getElementById('d-descricao').value.trim()||null};}
     else if(tipo==='despesa_geral'){const vl=parseBRL(document.getElementById('dg-valor').value);if(!vl)throw new Error('Informe o valor.');payload={data:document.getElementById('dg-data').value||null,tipo:document.getElementById('dg-tipo').value,valor:vl,descricao:document.getElementById('dg-descricao').value.trim()||null};}
@@ -1695,8 +1695,8 @@ function gerarRelatorio(){
     const cart=(cli?.carteira||'').toLowerCase();
     const despTrab=DB.despesas.filter(d=>d.trabalho_id===t.id).reduce((s,d)=>s+(+d.valor||0),0);
     const saldoT=(+t.valor_total||0)-despTrab;
-    sandroTrabs+=cart==='sandro'?saldoT*0.60:saldoT*0.50;
-    rafaelTrabs+=cart==='sandro'?saldoT*0.40:saldoT*0.50;
+    sandroTrabs+=cart==='sandro'?saldoT*0.50:saldoT*0.50;
+    rafaelTrabs+=cart==='sandro'?saldoT*0.50:saldoT*0.50;
   });
   sandroTrabs=parseFloat(sandroTrabs.toFixed(2));
   rafaelTrabs=parseFloat(rafaelTrabs.toFixed(2));

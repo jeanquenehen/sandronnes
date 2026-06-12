@@ -196,8 +196,8 @@ async function recalcularDivisao(trabalhoId) {
         let percSandro, percRafael;
 
         if (carteira === 'sandro') {
-            percSandro = 0.60;
-            percRafael = 0.40;
+            percSandro = 0.50;
+            percRafael = 0.50;
         } else {
             percSandro = 0.50;
             percRafael = 0.50;
@@ -324,9 +324,9 @@ app.post('/api/trabalhos', requireAuth, requireWriteAccess, async (req, res) => 
         // Lança despesas automáticas de comissão em background
         const dataRef = data.data_execucao || data.data_pedido || new Date().toISOString().slice(0,10);
 
-        // 1. Comissão do operador
+        // 1. Comissão do operador (somente se houver operador atribuído)
         const ganhoOp = parseFloat(data.ganho_operador) || 0;
-        if (ganhoOp > 0) {
+        if (ganhoOp > 0 && data.operador_id) {
             await supabaseAdmin.from('despesas').insert({
                 trabalho_id: data.id,
                 data: dataRef,
