@@ -1666,13 +1666,21 @@ function gerarRelatorio(){
   const ini=document.getElementById('rel-inicio').value,fim=document.getElementById('rel-fim').value;if(!ini||!fim)return;
   const inRange=d=>{if(!d)return false;const ym=d.substring(0,7);return ym>=ini&&ym<=fim;};
   const trabs=DB.trabalhos.filter(t=>inRange(t.data_execucao));
+  const trabIds=new Set(trabs.map(t=>t.id));
 
-  // Despesas de trabalho + gerais para o KPI de total despesas
-  const despsTrab=DB.despesas.filter(d=>inRange(d.data));
+  // Despesas de trabalhos do período (todas as despesas vinculadas aos trabalhos no período,
+  // independente da data da despesa em si).
+  const despsTrab=DB.despesas.filter(d=>trabIds.has(d.trabalho_id));
+  // Despesas gerais filtradas pela data da despesa.
   const despsGer=DB.despesas_gerais.filter(d=>inRange(d.data));
+  // Pagamentos recebidos no período (filtrados pela data de pagamento).
+  const pagsRecebidos=DB.pagamentos.filter(p=>inRange(p.data_pagamento));
+
   const receita=trabs.reduce((s,t)=>s+(+t.valor_total||0),0);
+  const recebido=pagsRecebidos.reduce((s,p)=>s+(+p.valor||0),0);
   const despTot=[...despsTrab,...despsGer].reduce((s,d)=>s+(+d.valor||0),0);
-  const liquido=receita-despTot;
+  // Resultado líquido = o que entrou (pagamentos recebidos) − todas as despesas (trabalho + gerais).
+  const liquido=recebido-despTot;
   document.getElementById('rel-receita').textContent=brl(receita);
   document.getElementById('rel-despesas').textContent=brl(despTot);
   document.getElementById('rel-liquido').textContent=brl(liquido);

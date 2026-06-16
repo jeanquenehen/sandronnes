@@ -366,7 +366,38 @@ app.put('/api/trabalhos/:id', requireAuth, requireWriteAccess, async (req, res) 
             .from('trabalhos').update(payload).eq('id', req.params.id).select().single();
         if (error) throw error;
         res.json(data);
-        // Recalcula pois valor_total ou ganhos podem ter mudado
+
+        // Recria comissões automáticas (operador / representante) em background.
+        // Remove primeiro as antigas geradas automaticamente — não toca em despesas manuais.
+        const dataRef = data.data_execucao || data.data_pedido || new Date().toISOString().slice(0,10);
+        await supabaseAdmin.from('despesas')
+            .delete()
+            .eq('trabalho_id', data.id)
+            .in('tipo', ['Comissão operador', 'Comissão representante'])
+            .eq('descricao', 'Lançado automaticamente ao criar trabalho');
+
+        const ganhoOpEdit = parseFloat(data.ganho_operador) || 0;
+        if (ganhoOpEdit > 0 && data.operador_id) {
+            await supabaseAdmin.from('despesas').insert({
+                trabalho_id: data.id,
+                data: dataRef,
+                tipo: 'Comissão operador',
+                valor: ganhoOpEdit,
+                descricao: 'Lançado automaticamente ao criar trabalho'
+            });
+        }
+        const ganhoRepEdit = parseFloat(data.ganho_representante) || 0;
+        if (ganhoRepEdit > 0 && data.representante_id) {
+            await supabaseAdmin.from('despesas').insert({
+                trabalho_id: data.id,
+                data: dataRef,
+                tipo: 'Comissão representante',
+                valor: ganhoRepEdit,
+                descricao: 'Lançado automaticamente ao criar trabalho'
+            });
+        }
+
+        // Recalcula divisão sócios depois das despesas atualizadas
         recalcularDivisao(data.id);
     } catch (e) {
         res.status(400).json({ success: false, message: e.message });
