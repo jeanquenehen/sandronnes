@@ -931,10 +931,11 @@ body.readonly .log-reset{display:none !important;}
 
   <!-- RELATÓRIOS -->
   <div class="section" id="sec-relatorios">
-    <div class="kpi-grid" style="margin-bottom:22px">
+    <div class="kpi-grid" style="margin-bottom:22px;grid-template-columns:repeat(5,1fr)">
       <div class="kpi accent"><h4>Resultado líquido</h4><div class="val" id="rel-liquido">R$ 0</div><div class="sub">Receita − Despesas</div></div>
       <div class="kpi"><h4>Recebido no período</h4><div class="val" id="rel-receita">R$ 0</div><div class="sub">Pagamentos efetivamente recebidos</div></div>
       <div class="kpi"><h4>Total despesas</h4><div class="val" id="rel-despesas">R$ 0</div><div class="sub">No período</div></div>
+      <div class="kpi"><h4>A receber</h4><div class="val" id="rel-areceber">R$ 0</div><div class="sub">Saldo dos trabalhos do período</div></div>
         <div class="kpi">
         <h4>Filtrar período</h4>
         <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
@@ -1679,10 +1680,15 @@ function gerarRelatorio(){
   const receita=trabs.reduce((s,t)=>s+(+t.valor_total||0),0);
   const recebido=pagsRecebidos.reduce((s,p)=>s+(+p.valor||0),0);
   const despTot=[...despsTrab,...despsGer].reduce((s,d)=>s+(+d.valor||0),0);
+  // A receber: total dos trabalhos do período − tudo o que já foi pago para esses trabalhos
+  // (independente da data do pagamento — recebimentos podem ocorrer fora do período).
+  const recebidoDosTrabs=DB.pagamentos.filter(p=>trabIds.has(p.trabalho_id)).reduce((s,p)=>s+(+p.valor||0),0);
+  const aReceber=receita-recebidoDosTrabs;
   // Resultado líquido = o que entrou (pagamentos recebidos) − todas as despesas (trabalho + gerais).
   const liquido=recebido-despTot;
   document.getElementById('rel-receita').textContent=brl(recebido);
   document.getElementById('rel-despesas').textContent=brl(despTot);
+  document.getElementById('rel-areceber').textContent=brl(aReceber);
   document.getElementById('rel-liquido').textContent=brl(liquido);
   const relLiqEl=document.getElementById('rel-liquido').closest('.kpi');
   if(relLiqEl){relLiqEl.style.background=liquido<0?'linear-gradient(135deg,#ff4757,#c43344)':'linear-gradient(135deg,#10d97e,#047857)';}
@@ -1840,8 +1846,9 @@ async function exportarPDF(){
     const liquido=document.getElementById('rel-liquido').textContent;
     const receita=document.getElementById('rel-receita').textContent;
     const despesas=document.getElementById('rel-despesas').textContent;
-    const kpis=[['Resultado Líquido',liquido],['Recebido no período',receita],['Total Despesas',despesas]];
-    const colW=(W-margin*2)/3;
+    const areceber=document.getElementById('rel-areceber').textContent;
+    const kpis=[['Resultado Líquido',liquido],['Recebido no período',receita],['Total Despesas',despesas],['A Receber',areceber]];
+    const colW=(W-margin*2)/kpis.length;
     kpis.forEach(([label,val],i)=>{
       const x=margin+i*colW;
       doc.setFillColor(248,250,252); doc.roundedRect(x,y,colW-4,18,3,3,'F');
