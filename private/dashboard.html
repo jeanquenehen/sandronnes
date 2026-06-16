@@ -1693,12 +1693,33 @@ function gerarRelatorio(){
   const relLiqEl=document.getElementById('rel-liquido').closest('.kpi');
   if(relLiqEl){relLiqEl.style.background=liquido<0?'linear-gradient(135deg,#ff4757,#c43344)':'linear-gradient(135deg,#10d97e,#047857)';}
 
-  // Ganhos por operador
-  const opMap={};trabs.forEach(t=>{const op=DB.operadores.find(o=>o.id===t.operador_id);if(!op)return;if(!opMap[op.id])opMap[op.id]={nome:op.nome,qtd:0,ha:0,ganho:0};opMap[op.id].qtd++;opMap[op.id].ha+=(+t.dimensao_ha||0);opMap[op.id].ganho+=(+t.ganho_operador||0);});
+  // Ganhos por operador — só conta quem ainda tem a despesa "Comissão operador" registrada.
+  const opMap={};
+  trabs.forEach(t=>{
+    const op=DB.operadores.find(o=>o.id===t.operador_id);
+    if(!op)return;
+    const comissaoOp=DB.despesas.find(d=>d.trabalho_id===t.id&&d.tipo==='Comissão operador');
+    if(!comissaoOp)return;
+    if(!opMap[op.id])opMap[op.id]={nome:op.nome,qtd:0,ha:0,ganho:0};
+    opMap[op.id].qtd++;
+    opMap[op.id].ha+=(+t.dimensao_ha||0);
+    opMap[op.id].ganho+=(+comissaoOp.valor||0);
+  });
   document.getElementById('rel-tbody-op').innerHTML=Object.values(opMap).length?Object.values(opMap).map(o=>`<tr><td>${esc(o.nome)}</td><td>${o.qtd}</td><td>${o.ha.toFixed(1)} ha</td><td><strong>${brl(o.ganho)}</strong></td></tr>`).join(''):emptyRow(4,'Nenhum dado no período.');
 
-  // Ganhos por representante
-  const repMap={};trabs.forEach(t=>{if(!t.representante_id)return;const rp=DB.representantes.find(r=>r.id===t.representante_id);if(!rp)return;if(!repMap[rp.id])repMap[rp.id]={nome:rp.nome,qtd:0,ha:0,ganho:0};repMap[rp.id].qtd++;repMap[rp.id].ha+=(+t.dimensao_ha||0);repMap[rp.id].ganho+=(+t.ganho_representante||0);});
+  // Ganhos por representante — só conta quem ainda tem a despesa "Comissão representante" registrada.
+  const repMap={};
+  trabs.forEach(t=>{
+    if(!t.representante_id)return;
+    const rp=DB.representantes.find(r=>r.id===t.representante_id);
+    if(!rp)return;
+    const comissaoRep=DB.despesas.find(d=>d.trabalho_id===t.id&&d.tipo==='Comissão representante');
+    if(!comissaoRep)return;
+    if(!repMap[rp.id])repMap[rp.id]={nome:rp.nome,qtd:0,ha:0,ganho:0};
+    repMap[rp.id].qtd++;
+    repMap[rp.id].ha+=(+t.dimensao_ha||0);
+    repMap[rp.id].ganho+=(+comissaoRep.valor||0);
+  });
   document.getElementById('rel-tbody-rep').innerHTML=Object.values(repMap).length?Object.values(repMap).map(r=>`<tr><td>${esc(r.nome)}</td><td>${r.qtd}</td><td>${r.ha.toFixed(1)} ha</td><td><strong>${brl(r.ganho)}</strong></td></tr>`).join(''):emptyRow(4,'Nenhum dado no período.');
 
   // Divisão entre sócios: percentual sobre saldo (valor_total − despesas do trabalho)
