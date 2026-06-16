@@ -332,7 +332,7 @@ app.post('/api/trabalhos', requireAuth, requireWriteAccess, async (req, res) => 
                 data: dataRef,
                 tipo: 'Comissão operador',
                 valor: ganhoOp,
-                descricao: 'Lançado automaticamente ao criar trabalho'
+                descricao: 'Comissão do operador'
             });
         }
 
@@ -344,7 +344,7 @@ app.post('/api/trabalhos', requireAuth, requireWriteAccess, async (req, res) => 
                 data: dataRef,
                 tipo: 'Comissão representante',
                 valor: ganhoRep,
-                descricao: 'Lançado automaticamente ao criar trabalho'
+                descricao: 'Comissão do representante'
             });
         }
 
@@ -374,7 +374,7 @@ app.put('/api/trabalhos/:id', requireAuth, requireWriteAccess, async (req, res) 
             .delete()
             .eq('trabalho_id', data.id)
             .in('tipo', ['Comissão operador', 'Comissão representante'])
-            .eq('descricao', 'Lançado automaticamente ao criar trabalho');
+            .in('descricao', ['Comissão do operador', 'Comissão do representante', 'Lançado automaticamente ao criar trabalho']);
 
         const ganhoOpEdit = parseFloat(data.ganho_operador) || 0;
         if (ganhoOpEdit > 0 && data.operador_id) {
@@ -383,7 +383,7 @@ app.put('/api/trabalhos/:id', requireAuth, requireWriteAccess, async (req, res) 
                 data: dataRef,
                 tipo: 'Comissão operador',
                 valor: ganhoOpEdit,
-                descricao: 'Lançado automaticamente ao criar trabalho'
+                descricao: 'Comissão do operador'
             });
         }
         const ganhoRepEdit = parseFloat(data.ganho_representante) || 0;
@@ -393,7 +393,7 @@ app.put('/api/trabalhos/:id', requireAuth, requireWriteAccess, async (req, res) 
                 data: dataRef,
                 tipo: 'Comissão representante',
                 valor: ganhoRepEdit,
-                descricao: 'Lançado automaticamente ao criar trabalho'
+                descricao: 'Comissão do representante'
             });
         }
 

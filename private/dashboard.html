@@ -933,7 +933,7 @@ body.readonly .log-reset{display:none !important;}
   <div class="section" id="sec-relatorios">
     <div class="kpi-grid" style="margin-bottom:22px">
       <div class="kpi accent"><h4>Resultado líquido</h4><div class="val" id="rel-liquido">R$ 0</div><div class="sub">Receita − Despesas</div></div>
-      <div class="kpi"><h4>Receita bruta</h4><div class="val" id="rel-receita">R$ 0</div><div class="sub">No período</div></div>
+      <div class="kpi"><h4>Recebido no período</h4><div class="val" id="rel-receita">R$ 0</div><div class="sub">Pagamentos efetivamente recebidos</div></div>
       <div class="kpi"><h4>Total despesas</h4><div class="val" id="rel-despesas">R$ 0</div><div class="sub">No período</div></div>
         <div class="kpi">
         <h4>Filtrar período</h4>
@@ -1681,7 +1681,7 @@ function gerarRelatorio(){
   const despTot=[...despsTrab,...despsGer].reduce((s,d)=>s+(+d.valor||0),0);
   // Resultado líquido = o que entrou (pagamentos recebidos) − todas as despesas (trabalho + gerais).
   const liquido=recebido-despTot;
-  document.getElementById('rel-receita').textContent=brl(receita);
+  document.getElementById('rel-receita').textContent=brl(recebido);
   document.getElementById('rel-despesas').textContent=brl(despTot);
   document.getElementById('rel-liquido').textContent=brl(liquido);
   const relLiqEl=document.getElementById('rel-liquido').closest('.kpi');
@@ -1840,7 +1840,7 @@ async function exportarPDF(){
     const liquido=document.getElementById('rel-liquido').textContent;
     const receita=document.getElementById('rel-receita').textContent;
     const despesas=document.getElementById('rel-despesas').textContent;
-    const kpis=[['Resultado Líquido',liquido],['Receita Bruta',receita],['Total Despesas',despesas]];
+    const kpis=[['Resultado Líquido',liquido],['Recebido no período',receita],['Total Despesas',despesas]];
     const colW=(W-margin*2)/3;
     kpis.forEach(([label,val],i)=>{
       const x=margin+i*colW;
